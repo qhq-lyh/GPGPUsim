@@ -109,6 +109,7 @@ gpgpu_sim_wrapper::gpgpu_sim_wrapper(bool power_simulation_enabled,
 
   g_power_filename = NULL;
   g_power_trace_filename = NULL;
+  lyhong_filename_interface = NULL;
   g_metric_trace_filename = NULL;
   g_steady_state_tracking_filename = NULL;
   xml_filename = xmlfile;
@@ -157,7 +158,7 @@ void gpgpu_sim_wrapper::init_mcpat(
     bool power_per_cycle_dump, double steady_power_deviation,
     double steady_min_period, int zlevel, double init_val, int stat_sample_freq,
     int power_sim_mode, bool dvfs_enabled, unsigned clock_freq,
-    unsigned num_shaders) {
+    unsigned num_shaders, char* lyhong_filename) {
   // Write File Headers for (-metrics trace, -power trace)
 
   reset_counters();
@@ -175,6 +176,7 @@ void gpgpu_sim_wrapper::init_mcpat(
   }
 
   if (mcpat_init) {
+    lyhong_filename_interface = lyhong_filename;
     g_power_filename = powerfilename;
     g_power_trace_filename = power_trace_filename;
     g_metric_trace_filename = metric_trace_filename;
@@ -248,6 +250,12 @@ void gpgpu_sim_wrapper::init_mcpat(
     int flg = chmod(g_power_filename, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     assert(flg == 0);
   }
+  lyhong_file.open(lyhong_filename_interface);
+  if(!lyhong_file.is_open()) {
+    powerfile << "lyhong_print: Error - could not open lyhong_file. " << std::endl; 
+  }
+  int lyhong_flg = chmod(lyhong_filename_interface, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+  assert(lyhong_flg == 0);
   sample_val = 0;
   init_inst_val = init_val;  // gpu_tot_sim_insn+gpu_sim_insn;
 }
@@ -569,6 +577,14 @@ void gpgpu_sim_wrapper::power_metrics_calculations() {
       ((sample_power < gpu_tot_power.min) || (gpu_tot_power.min == 0))
           ? sample_power
           : gpu_tot_power.min;
+  lyhong_file << "Total_sample_count: " << total_sample_count << std::endl;
+  lyhong_file << "Kernel_sample_count: " << kernel_sample_count << std::endl;
+  lyhong_file << "num_pwr_cmps: " << num_pwr_cmps << std::endl;
+  lyhong_file << "Dynamic Power Total: " << proc->rt_power.readOp.dynamic << std::endl;
+  for (unsigned i = 0; i < num_pwr_cmps; ++i) {
+    lyhong_file << "gpu_" << pwr_cmp_label[i] << ": " << sample_cmp_pwr[i] << " " << std::endl;
+  }
+  lyhong_file <<  std::endl <<  std::endl;
 }
 
 void gpgpu_sim_wrapper::print_trace_files() {

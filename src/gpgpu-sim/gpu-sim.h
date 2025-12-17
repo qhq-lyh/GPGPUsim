@@ -148,6 +148,9 @@ struct power_config {
       if (*s == '\n' || *s == '\r') *s = 0;
       s++;
     }
+    char lyhong_buf[1024];
+    snprintf(lyhong_buf, 1024, "lyhong_power_report.log");
+    lyhong_filename_interface = strdup(lyhong_buf);
     char buf1[1024];
     // snprintf(buf1, 1024, "accelwattch_power_report__%s.log", date);
     snprintf(buf1, 1024, "accelwattch_power_report.log");
@@ -188,6 +191,7 @@ struct power_config {
   bool g_power_per_cycle_dump;
   bool g_power_simulator_debug;
   char *g_power_filename;
+  char *lyhong_filename_interface;
   char *g_power_trace_filename;
   char *g_metric_trace_filename;
   char *g_steady_state_tracking_filename;
