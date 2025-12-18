@@ -825,6 +825,7 @@ double gpgpu_sim_wrapper::calculate_static_power() {
   double base_static_power = 0.0;
   double lane_static_power = 0.0;
   double per_active_core = (num_cores - num_idle_cores) / num_cores;
+  lyhong_file << "lyhong_print:" << " num_cores: " << num_cores << " num_idle_cores: " << num_idle_cores << " per_active_core: " << per_active_core << std::endl;
 
   double l1_accesses = initpower_coeff[DC_RH] + initpower_coeff[DC_RM] +
                        initpower_coeff[DC_WH] + initpower_coeff[DC_WM];

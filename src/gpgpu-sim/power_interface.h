@@ -43,7 +43,7 @@ void init_mcpat(const gpgpu_sim_config &config,
                 unsigned tot_inst, unsigned inst);
 void mcpat_cycle(const gpgpu_sim_config &config,
                  const shader_core_config *shdr_config,
-                 class gpgpu_sim_wrapper *wrapper,
+                 class gpgpu_sim_wrapper *wrapper, const std::vector<float> &lyhong_active_sm,
                  class power_stat_t *power_stats, unsigned stat_sample_freq,
                  unsigned tot_cycle, unsigned cycle, unsigned tot_inst,
                  unsigned inst, bool dvfs_enabled);

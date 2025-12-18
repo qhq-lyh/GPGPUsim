@@ -1971,6 +1971,7 @@ unsigned long long g_single_step =
     0;  // set this in gdb to single step the pipeline
 
 void gpgpu_sim::cycle() {
+  std::vector<float> lyhong_active_sm;
   int clock_mask = next_clock_domain();
 
   if (clock_mask & CORE) {
@@ -2067,6 +2068,9 @@ void gpgpu_sim::cycle() {
       if (m_cluster[i]->get_not_completed() || get_more_cta_left()) {
         m_cluster[i]->core_cycle();
         *active_sms += m_cluster[i]->get_n_active_sms();
+        lyhong_active_sm.push_back(m_cluster[i]->get_n_active_sms());
+      } else {
+        lyhong_active_sm.push_back(0.0f);
       }
       // Update core icnt/cache stats for AccelWattch
       if (m_config.g_power_simulation_enabled) {
@@ -2101,7 +2105,7 @@ void gpgpu_sim::cycle() {
 #ifdef GPGPUSIM_POWER_MODEL
     if (m_config.g_power_simulation_enabled) {
       if (m_config.g_power_simulation_mode == 0) {
-        mcpat_cycle(m_config, getShaderCoreConfig(), m_gpgpusim_wrapper,
+        mcpat_cycle(m_config, getShaderCoreConfig(), m_gpgpusim_wrapper, lyhong_active_sm,
                     m_power_stats, m_config.gpu_stat_sample_freq,
                     gpu_tot_sim_cycle, gpu_sim_cycle, gpu_tot_sim_insn,
                     gpu_sim_insn, m_config.g_dvfs_enabled);
@@ -2312,6 +2316,7 @@ void sst_gpgpu_sim::SST_gpgpusim_numcores_equal_check(unsigned sst_numcores) {
 }
 
 void sst_gpgpu_sim::SST_cycle() {
+  std::vector<float> lyhong_active_sm;
   // shader core loading (pop from ICNT into core) follows CORE clock
   for (unsigned i = 0; i < m_shader_config->n_simt_clusters; i++)
     static_cast<sst_simt_core_cluster *>(m_cluster[i])->icnt_cycle_SST();
@@ -2347,7 +2352,7 @@ void sst_gpgpu_sim::SST_cycle() {
     // McPAT main cycle (interface with McPAT)
 #ifdef GPGPUSIM_POWER_MODEL
   if (m_config.g_power_simulation_enabled) {
-    mcpat_cycle(m_config, getShaderCoreConfig(), m_gpgpusim_wrapper,
+    mcpat_cycle(m_config, getShaderCoreConfig(), m_gpgpusim_wrapper, lyhong_active_sm,
                 m_power_stats, m_config.gpu_stat_sample_freq, gpu_tot_sim_cycle,
                 gpu_sim_cycle, gpu_tot_sim_insn, gpu_sim_insn,
                 m_config.g_dvfs_enabled);

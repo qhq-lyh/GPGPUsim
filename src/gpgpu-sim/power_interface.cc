@@ -48,7 +48,7 @@ void init_mcpat(const gpgpu_sim_config &config,
 
 void mcpat_cycle(const gpgpu_sim_config &config,
                  const shader_core_config *shdr_config,
-                 class gpgpu_sim_wrapper *wrapper,
+                 class gpgpu_sim_wrapper *wrapper, const std::vector<float> &lyhong_active_sm,
                  class power_stat_t *power_stats, unsigned stat_sample_freq,
                  unsigned tot_cycle, unsigned cycle, unsigned tot_inst,
                  unsigned inst, bool dvfs_enabled) {
@@ -58,7 +58,15 @@ void mcpat_cycle(const gpgpu_sim_config &config,
     mcpat_init = false;
     return;
   }
-
+  static unsigned lyhong_print_counter = 0;
+  float sum_active_sm = 0.0f;
+  if (++lyhong_print_counter == 10) {
+    for (size_t i = 0; i < lyhong_active_sm.size(); ++i) {
+      sum_active_sm += lyhong_active_sm[i];
+    }
+    printf("Lyhong_print: Sum of lyhong_active_sm = %f\n", sum_active_sm);
+    lyhong_print_counter = 0;
+  }
   if ((tot_cycle + cycle) % stat_sample_freq == 0) {
     if (dvfs_enabled) {
       wrapper->set_model_voltage(1);  // performance model needs to support
@@ -104,6 +112,7 @@ void mcpat_cycle(const gpgpu_sim_config &config,
     float num_idle_core = num_cores - active_sms;
     wrapper->set_num_cores(num_cores);
     wrapper->set_idle_core_power(num_idle_core);
+    printf("Lyhong_print: tot_cycle = %u, cycle = %u, stat_sample_freq = %u, num_idle_core = %f\n",tot_cycle, cycle, stat_sample_freq, num_idle_core);
 
     // pipeline power - pipeline_duty_cycle *= percent_active_sms;
     float pipeline_duty_cycle =
