@@ -70,7 +70,7 @@ void mcpat_cycle(const gpgpu_sim_config &config,
     first_print = false;
   }
   if (sum_active_sm != last_sum_active_sm) {
-    printf("Lyhong_print(has changed): sum_active_sm = %f, cycle = %u\n", sum_active_sm, cycle);
+    printf("Lyhong_print(has changed): sum_active_sm = %f, cycle = %u, tot_cycle = %u\n", sum_active_sm, cycle, tot_cycle);
   }
   last_sum_active_sm = sum_active_sm;
   // add done
