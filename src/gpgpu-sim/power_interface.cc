@@ -58,15 +58,22 @@ void mcpat_cycle(const gpgpu_sim_config &config,
     mcpat_init = false;
     return;
   }
-  static unsigned lyhong_print_counter = 0;
+  // add by lyhong
+  static bool first_print = true;
+  static float last_sum_active_sm = -1.0f;
   float sum_active_sm = 0.0f;
-  if (++lyhong_print_counter == 10) {
-    for (size_t i = 0; i < lyhong_active_sm.size(); ++i) {
-      sum_active_sm += lyhong_active_sm[i];
-    }
-    printf("Lyhong_print: Sum of lyhong_active_sm = %f\n", sum_active_sm);
-    lyhong_print_counter = 0;
+  for (size_t i = 0; i < lyhong_active_sm.size(); ++i) {
+    sum_active_sm += lyhong_active_sm[i];
   }
+  if (first_print) {
+    printf("Lyhong_print(first): sum_active_sm = %f, tot_cycle = %u, cycle = %u, stat_sample_freq = %u\n", sum_active_sm, tot_cycle, cycle, stat_sample_freq);
+    first_print = false;
+  }
+  if (sum_active_sm != last_sum_active_sm) {
+    printf("Lyhong_print(has changed): sum_active_sm = %f, cycle = %u\n", sum_active_sm, cycle);
+  }
+  last_sum_active_sm = sum_active_sm;
+  // add done
   if ((tot_cycle + cycle) % stat_sample_freq == 0) {
     if (dvfs_enabled) {
       wrapper->set_model_voltage(1);  // performance model needs to support
@@ -112,7 +119,6 @@ void mcpat_cycle(const gpgpu_sim_config &config,
     float num_idle_core = num_cores - active_sms;
     wrapper->set_num_cores(num_cores);
     wrapper->set_idle_core_power(num_idle_core);
-    printf("Lyhong_print: tot_cycle = %u, cycle = %u, stat_sample_freq = %u, num_idle_core = %f\n",tot_cycle, cycle, stat_sample_freq, num_idle_core);
 
     // pipeline power - pipeline_duty_cycle *= percent_active_sms;
     float pipeline_duty_cycle =
