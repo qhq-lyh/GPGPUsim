@@ -577,10 +577,11 @@ void gpgpu_sim_wrapper::power_metrics_calculations() {
       ((sample_power < gpu_tot_power.min) || (gpu_tot_power.min == 0))
           ? sample_power
           : gpu_tot_power.min;
-  lyhong_file << "Total_sample_count: " << total_sample_count << std::endl;
-  lyhong_file << "Kernel_sample_count: " << kernel_sample_count << std::endl;
-  lyhong_file << "num_pwr_cmps: " << num_pwr_cmps << std::endl;
-  lyhong_file << "Dynamic Power Total: " << proc->rt_power.readOp.dynamic << std::endl;
+  lyhong_file << "Total_sample_count(TSC): " << total_sample_count << "      (time = TSC * gpgpu_runtime_stat / freq)"   << std::endl;
+  lyhong_file << "Kernel_sample_count: " << kernel_sample_count<<std::endl;
+  lyhong_file << "rt_power.readOp.dynamic: " << proc->rt_power.readOp.dynamic << "      (IDLE_COREP + gpu_*P)"  << std::endl;
+  lyhong_file << "Total Power: " << sample_power << std::endl;
+  unsigned start_index = (num_pwr_cmps >= 3) ? num_pwr_cmps - 3 : 0;
   for (unsigned i = 0; i < num_pwr_cmps; ++i) {
     lyhong_file << "gpu_" << pwr_cmp_label[i] << ": " << sample_cmp_pwr[i] << " " << std::endl;
   }
