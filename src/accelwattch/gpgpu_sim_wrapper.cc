@@ -81,7 +81,7 @@ enum pwr_cmp_t {
 
 gpgpu_sim_wrapper::gpgpu_sim_wrapper(bool power_simulation_enabled,
                                      char* xmlfile, int power_simulation_mode,
-                                     bool dvfs_enabled) {
+                                     bool dvfs_enabled, unsigned n_shader) {
   kernel_sample_count = 0;
   total_sample_count = 0;
 
@@ -101,6 +101,12 @@ gpgpu_sim_wrapper::gpgpu_sim_wrapper(bool power_simulation_enabled,
   sample_cmp_pwr.resize(NUM_COMPONENTS_MODELLED, 0);
 
   sample_perf_counters.resize(NUM_PERFORMANCE_COUNTERS, 0);
+  sample_Per_cmp_pwr.resize(n_shader);
+  sample_Per_perf_counters.resize(n_shader);
+  for (unsigned i = 0; i < n_shader; i++) {
+    sample_Per_cmp_pwr[i].resize(NUM_COMPONENTS_MODELLED, 0);
+    sample_Per_perf_counters[i].resize(NUM_PERFORMANCE_COUNTERS, 0);
+  }
   initpower_coeff.resize(NUM_PERFORMANCE_COUNTERS, 0);
   effpower_coeff.resize(NUM_PERFORMANCE_COUNTERS, 0);
 
@@ -473,6 +479,13 @@ void gpgpu_sim_wrapper::set_int_accesses(double ialu_accesses,
   sample_perf_counters[INT_DIV_ACC] = idiv_accesses;
 }
 
+void gpgpu_sim_wrapper::set_Per_int_accesses(const std::vector<double> &Per_imul_accesses) {
+  unsigned num_shader = Per_imul_accesses.size();
+  for (unsigned i = 0; i < num_shader; i++) {
+    sample_Per_perf_counters[i][INT_MUL_ACC]    = Per_imul_accesses[i];
+  }
+}
+
 void gpgpu_sim_wrapper::set_dp_accesses(double dpu_accesses,
                                         double dpmul_accesses,
                                         double dpdiv_accesses) {
@@ -584,6 +597,9 @@ void gpgpu_sim_wrapper::power_metrics_calculations() {
   unsigned start_index = (num_pwr_cmps >= 3) ? num_pwr_cmps - 3 : 0;
   for (unsigned i = 0; i < num_pwr_cmps; ++i) {
     lyhong_file << "gpu_" << pwr_cmp_label[i] << ": " << sample_cmp_pwr[i] << " " << std::endl;
+  }
+  for (unsigned i = 0; i < num_cores; i++) {
+    lyhong_file << "SM_" << i << "_INT_MULP: " << sample_Per_cmp_pwr[i][INT_MULP] << " " << std::endl;
   }
   lyhong_file <<  std::endl <<  std::endl;
 }
@@ -1017,6 +1033,10 @@ void gpgpu_sim_wrapper::update_components_power() {
         sample_sfu_pwr * sample_perf_counters[TENSOR_ACC] / tot_sfu_accesses;
     sample_cmp_pwr[TEXP] =
         sample_sfu_pwr * sample_perf_counters[TEX_ACC] / tot_sfu_accesses;
+    for (unsigned i = 0; i < num_cores; i++) {
+      sample_Per_cmp_pwr[i][INT_MULP] =
+        sample_sfu_pwr * sample_Per_perf_counters[i][INT_MUL_ACC] / tot_sfu_accesses;
+    }
   } else {
     sample_cmp_pwr[INT_MUL24P] = 0;
     sample_cmp_pwr[INT_MUL32P] = 0;
@@ -1032,6 +1052,9 @@ void gpgpu_sim_wrapper::update_components_power() {
     sample_cmp_pwr[DP_DIVP] = 0;
     sample_cmp_pwr[TENSORP] = 0;
     sample_cmp_pwr[TEXP] = 0;
+    for (unsigned i = 0; i < num_cores; i++) {
+      sample_Per_cmp_pwr[i][INT_MULP] = 0;
+    }
   }
 
   sample_cmp_pwr[SCHEDP] = proc->cores[0]->exu->scheu->rt_power.readOp.dynamic /

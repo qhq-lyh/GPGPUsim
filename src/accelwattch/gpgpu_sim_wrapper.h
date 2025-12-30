@@ -84,7 +84,7 @@ struct PowerscalingCoefficients {
 class gpgpu_sim_wrapper {
  public:
   gpgpu_sim_wrapper(bool power_simulation_enabled, char* xmlfile,
-                    int power_simulation_mode, bool dvfs_enabled);
+                    int power_simulation_mode, bool dvfs_enabled, unsigned n_shader);
   ~gpgpu_sim_wrapper();
 
   void init_mcpat(char* xmlfile, char* powerfile, char* power_trace_file,
@@ -134,6 +134,7 @@ class gpgpu_sim_wrapper {
   void set_int_accesses(double ialu_accesses, double imul24_accesses,
                         double imul32_accesses, double imul_accesses,
                         double idiv_accesses);
+  void set_Per_int_accesses(const std::vector<double> &imul_accesses);
   void set_dp_accesses(double dpu_accesses, double dpmul_accesses,
                        double dpdiv_accesses);
   void set_fp_accesses(double fpu_accesses, double fpmul_accesses,
@@ -183,6 +184,8 @@ class gpgpu_sim_wrapper {
   std::vector<double> sample_cmp_pwr;  // Current sample component powers
   std::vector<double>
       sample_perf_counters;  // Current sample component perf. counts
+  std::vector<std::vector<double>> sample_Per_perf_counters;
+  std::vector<std::vector<double>> sample_Per_cmp_pwr;
   std::vector<double> initpower_coeff;
   std::vector<double> effpower_coeff;
 

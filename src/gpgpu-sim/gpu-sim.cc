@@ -982,7 +982,7 @@ gpgpu_sim::gpgpu_sim(const gpgpu_sim_config &config, gpgpu_context *ctx)
 #ifdef GPGPUSIM_POWER_MODEL
   m_gpgpusim_wrapper = new gpgpu_sim_wrapper(
       config.g_power_simulation_enabled, config.g_power_config_name,
-      config.g_power_simulation_mode, config.g_dvfs_enabled);
+      config.g_power_simulation_mode, config.g_dvfs_enabled, m_config.num_shader());
 #endif
 
   m_shader_stats = new shader_core_stats(m_shader_config);
