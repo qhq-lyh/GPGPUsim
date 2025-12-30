@@ -148,6 +148,9 @@ void mcpat_cycle(const gpgpu_sim_config &config,
                              power_stats->get_dpmul_accessess(0),
                              power_stats->get_dpdiv_accessess(0));
 
+    wrapper->set_Per_dp_accesses(power_stats->Per_get_dp_accessess(0),
+                                 power_stats->Per_get_dpmul_accessess(0));
+
     wrapper->set_fp_accesses(power_stats->get_fp_accessess(0),
                              power_stats->get_fpmul_accessess(0),
                              power_stats->get_fpdiv_accessess(0));

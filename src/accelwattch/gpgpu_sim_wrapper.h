@@ -137,6 +137,7 @@ class gpgpu_sim_wrapper {
   void set_Per_int_accesses(const std::vector<double> &imul_accesses);
   void set_dp_accesses(double dpu_accesses, double dpmul_accesses,
                        double dpdiv_accesses);
+  void set_Per_dp_accesses(const std::vector<double> &dpu_accesses, const std::vector<double> &Per_dpmul_accesses);
   void set_fp_accesses(double fpu_accesses, double fpmul_accesses,
                        double fpdiv_accesses);
   void set_trans_accesses(double sqrt_accesses, double log_accesses,

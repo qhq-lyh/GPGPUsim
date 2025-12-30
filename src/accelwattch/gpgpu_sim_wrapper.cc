@@ -480,8 +480,7 @@ void gpgpu_sim_wrapper::set_int_accesses(double ialu_accesses,
 }
 
 void gpgpu_sim_wrapper::set_Per_int_accesses(const std::vector<double> &Per_imul_accesses) {
-  unsigned num_shader = Per_imul_accesses.size();
-  for (unsigned i = 0; i < num_shader; i++) {
+  for (unsigned i = 0; i < num_cores; i++) {
     sample_Per_perf_counters[i][INT_MUL_ACC]    = Per_imul_accesses[i];
   }
 }
@@ -492,6 +491,14 @@ void gpgpu_sim_wrapper::set_dp_accesses(double dpu_accesses,
   sample_perf_counters[DP_ACC] = dpu_accesses;
   sample_perf_counters[DP_MUL_ACC] = dpmul_accesses;
   sample_perf_counters[DP_DIV_ACC] = dpdiv_accesses;
+}
+
+void gpgpu_sim_wrapper::set_Per_dp_accesses(const std::vector<double> &Per_dpu_accesses,
+                                            const std::vector<double> &Per_dpmul_accesses) {
+  for (unsigned i = 0; i < num_cores; i++) {
+    sample_Per_perf_counters[i][DP_ACC] = Per_dpu_accesses[i];
+    sample_Per_perf_counters[i][DP_MUL_ACC] = Per_dpmul_accesses[i];
+  }
 }
 
 void gpgpu_sim_wrapper::set_fp_accesses(double fpu_accesses,
@@ -600,6 +607,12 @@ void gpgpu_sim_wrapper::power_metrics_calculations() {
   }
   for (unsigned i = 0; i < num_cores; i++) {
     lyhong_file << "SM_" << i << "_INT_MULP: " << sample_Per_cmp_pwr[i][INT_MULP] << " " << std::endl;
+  }
+  for (unsigned i = 0; i < num_cores; i++) {
+    lyhong_file << "SM_" << i << "_DPUP: " << sample_Per_cmp_pwr[i][DPUP] << " " << std::endl;
+  }
+  for (unsigned i = 0; i < num_cores; i++) {
+    lyhong_file << "SM_" << i << "_DP_MULP: " << sample_Per_cmp_pwr[i][DP_MULP] << " " << std::endl;
   }
   lyhong_file <<  std::endl <<  std::endl;
 }
@@ -1033,10 +1046,6 @@ void gpgpu_sim_wrapper::update_components_power() {
         sample_sfu_pwr * sample_perf_counters[TENSOR_ACC] / tot_sfu_accesses;
     sample_cmp_pwr[TEXP] =
         sample_sfu_pwr * sample_perf_counters[TEX_ACC] / tot_sfu_accesses;
-    for (unsigned i = 0; i < num_cores; i++) {
-      sample_Per_cmp_pwr[i][INT_MULP] =
-        sample_sfu_pwr * sample_Per_perf_counters[i][INT_MUL_ACC] / tot_sfu_accesses;
-    }
   } else {
     sample_cmp_pwr[INT_MUL24P] = 0;
     sample_cmp_pwr[INT_MUL32P] = 0;
@@ -1052,11 +1061,24 @@ void gpgpu_sim_wrapper::update_components_power() {
     sample_cmp_pwr[DP_DIVP] = 0;
     sample_cmp_pwr[TENSORP] = 0;
     sample_cmp_pwr[TEXP] = 0;
-    for (unsigned i = 0; i < num_cores; i++) {
+  }
+  for (unsigned i = 0; i < num_cores; i++) {
+    if (tot_fpu_accesses != 0) {
+      sample_Per_cmp_pwr[i][DPUP] =
+        sample_fp_pwr * sample_Per_perf_counters[i][DP_ACC] / tot_fpu_accesses;
+    } else {
+      sample_Per_cmp_pwr[i][DPUP] = 0;
+    }
+    if (tot_sfu_accesses != 0) {
+      sample_Per_cmp_pwr[i][DP_MULP] =
+        sample_sfu_pwr * sample_Per_perf_counters[i][DP_MUL_ACC] / tot_sfu_accesses;
+      sample_Per_cmp_pwr[i][INT_MULP] =
+        sample_sfu_pwr * sample_Per_perf_counters[i][INT_MUL_ACC] / tot_sfu_accesses;
+    } else {
+      sample_Per_cmp_pwr[i][DP_MULP] = 0;
       sample_Per_cmp_pwr[i][INT_MULP] = 0;
     }
   }
-
   sample_cmp_pwr[SCHEDP] = proc->cores[0]->exu->scheu->rt_power.readOp.dynamic /
                            (proc->cores[0]->executionTime);
 
