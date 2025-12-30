@@ -155,9 +155,14 @@ void mcpat_cycle(const gpgpu_sim_config &config,
                              power_stats->get_fpmul_accessess(0),
                              power_stats->get_fpdiv_accessess(0));
 
+    wrapper->set_Per_fp_accesses(power_stats->Per_get_fp_accessess(0),
+                                 power_stats->Per_get_fpmul_accessess(0));
+
     wrapper->set_trans_accesses(
         power_stats->get_sqrt_accessess(0), power_stats->get_log_accessess(0),
         power_stats->get_sin_accessess(0), power_stats->get_exp_accessess(0));
+
+    wrapper->set_Per_trans_accesses(power_stats->Per_get_exp_accessess(0));
 
     wrapper->set_tensor_accesses(power_stats->get_tensor_accessess(0));
 

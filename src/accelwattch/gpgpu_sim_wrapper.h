@@ -140,8 +140,10 @@ class gpgpu_sim_wrapper {
   void set_Per_dp_accesses(const std::vector<double> &dpu_accesses, const std::vector<double> &Per_dpmul_accesses);
   void set_fp_accesses(double fpu_accesses, double fpmul_accesses,
                        double fpdiv_accesses);
+  void set_Per_fp_accesses(const std::vector<double> &Per_fpu_accesses,const std::vector<double> &Per_fpmul_accesses);
   void set_trans_accesses(double sqrt_accesses, double log_accesses,
                           double sin_accesses, double exp_accesses);
+  void set_Per_trans_accesses(const std::vector<double> &Per_exp_accesses);
   void set_tensor_accesses(double tensor_accesses);
   void set_tex_accesses(double tex_accesses);
   void set_avg_active_threads(float active_threads);
