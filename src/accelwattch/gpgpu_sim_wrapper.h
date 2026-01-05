@@ -220,6 +220,7 @@ class gpgpu_sim_wrapper {
   int g_power_trace_zlevel;
   double gpu_stat_sample_frequency;
   int gpu_stat_sample_freq;
+  bool sm_header_dumped;
 
   std::ofstream lyhong_file;
   std::ofstream lyhong_SM_file;
