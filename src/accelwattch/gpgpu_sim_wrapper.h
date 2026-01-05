@@ -94,7 +94,7 @@ class gpgpu_sim_wrapper {
                   double steady_power_deviation, double steady_min_period,
                   int zlevel, double init_val, int stat_sample_freq,
                   int power_sim_mode, bool dvfs_enabled, unsigned clock_freq,
-                  unsigned num_shaders, char* lyhong_filename);
+                  unsigned num_shaders, char* lyhong_filename, char* lyhong_SM_filename);
   void init_mcpat_hw_mode(unsigned gpu_sim_cycle);
   void detect_print_steady_state(int position, double init_val);
   void close_files();
@@ -222,7 +222,9 @@ class gpgpu_sim_wrapper {
   int gpu_stat_sample_freq;
 
   std::ofstream lyhong_file;
+  std::ofstream lyhong_SM_file;
   char* lyhong_filename_interface;
+  char* lyhong_SM_filename_interface;
   std::ofstream powerfile;
   gzFile power_trace_file;
   gzFile metric_trace_file;

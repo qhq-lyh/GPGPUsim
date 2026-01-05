@@ -164,7 +164,7 @@ void gpgpu_sim_wrapper::init_mcpat(
     bool power_per_cycle_dump, double steady_power_deviation,
     double steady_min_period, int zlevel, double init_val, int stat_sample_freq,
     int power_sim_mode, bool dvfs_enabled, unsigned clock_freq,
-    unsigned num_shaders, char* lyhong_filename) {
+    unsigned num_shaders, char* lyhong_filename, char* lyhong_SM_filename) {
   // Write File Headers for (-metrics trace, -power trace)
 
   reset_counters();
@@ -183,6 +183,7 @@ void gpgpu_sim_wrapper::init_mcpat(
 
   if (mcpat_init) {
     lyhong_filename_interface = lyhong_filename;
+    lyhong_SM_filename_interface = lyhong_SM_filename;
     g_power_filename = powerfilename;
     g_power_trace_filename = power_trace_filename;
     g_metric_trace_filename = metric_trace_filename;
@@ -262,6 +263,12 @@ void gpgpu_sim_wrapper::init_mcpat(
   }
   int lyhong_flg = chmod(lyhong_filename_interface, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
   assert(lyhong_flg == 0);
+  lyhong_SM_file.open(lyhong_SM_filename_interface);
+  if(!lyhong_SM_file.is_open()) {
+    powerfile << "lyhong_SM_print: Error - could not open lyhong_SM_file. " << std::endl; 
+  }
+  int lyhong_SM_flg = chmod(lyhong_SM_filename_interface, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+  assert(lyhong_SM_flg == 0);
   sample_val = 0;
   init_inst_val = init_val;  // gpu_tot_sim_insn+gpu_sim_insn;
 }

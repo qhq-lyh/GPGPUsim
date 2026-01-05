@@ -43,7 +43,7 @@ void init_mcpat(const gpgpu_sim_config &config,
       config.gpu_steady_power_deviation, config.gpu_steady_min_period,
       config.g_power_trace_zlevel, tot_inst + inst, stat_sample_freq,
       config.g_power_simulation_mode, config.g_dvfs_enabled,
-      config.get_core_freq() / 1000000, config.num_shader(), config.lyhong_filename_interface);
+      config.get_core_freq() / 1000000, config.num_shader(), config.lyhong_filename_interface, config.lyhong_SM_filename_interface);
 }
 
 void mcpat_cycle(const gpgpu_sim_config &config,
