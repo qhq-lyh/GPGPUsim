@@ -650,7 +650,7 @@ void gpgpu_sim_wrapper::power_metrics_calculations() {
   for (unsigned i = 0; i < num_pwr_cmps; ++i) {
     lyhong_file << "gpu_" << pwr_cmp_label[i] << ": " << sample_cmp_pwr[i] << " " << std::endl;
   }
-  // sm start   INT_MUL24P INT_MUL32P INT_DIVP FP_DIVP FP_SQRTP FP_LGP FP_SINP DP_DIVP TENSORP TEXP
+  // sm start
   if (!sm_header_dumped) {
     for (unsigned i = 0; i < num_cores; i++)
       lyhong_SM_file << "SM_" << i << "_INT_MULP\t";
