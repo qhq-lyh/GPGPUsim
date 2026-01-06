@@ -487,9 +487,15 @@ void gpgpu_sim_wrapper::set_int_accesses(double ialu_accesses,
   sample_perf_counters[INT_DIV_ACC] = idiv_accesses;
 }
 
-void gpgpu_sim_wrapper::set_Per_int_accesses(const std::vector<double> &Per_imul_accesses) {
+void gpgpu_sim_wrapper::set_Per_int_accesses(const std::vector<double> &Per_imul24_accesses,
+                                             const std::vector<double> &Per_imul32_accesses,
+                                             const std::vector<double> &Per_idiv_accesses,
+                                             const std::vector<double> &Per_imul_accesses) {
   for (unsigned i = 0; i < num_cores; i++) {
-    sample_Per_perf_counters[i][INT_MUL_ACC]    = Per_imul_accesses[i];
+    sample_Per_perf_counters[i][INT_MUL24_ACC] = Per_imul24_accesses[i];
+    sample_Per_perf_counters[i][INT_MUL32_ACC] = Per_imul32_accesses[i];
+    sample_Per_perf_counters[i][INT_MUL_ACC] = Per_imul_accesses[i];
+    sample_Per_perf_counters[i][INT_DIV_ACC] = Per_idiv_accesses[i];
   }
 }
 
@@ -502,10 +508,12 @@ void gpgpu_sim_wrapper::set_dp_accesses(double dpu_accesses,
 }
 
 void gpgpu_sim_wrapper::set_Per_dp_accesses(const std::vector<double> &Per_dpu_accesses,
-                                            const std::vector<double> &Per_dpmul_accesses) {
+                                            const std::vector<double> &Per_dpmul_accesses,
+                                            const std::vector<double> &Per_dpdiv_accesses) {
   for (unsigned i = 0; i < num_cores; i++) {
     sample_Per_perf_counters[i][DP_ACC] = Per_dpu_accesses[i];
     sample_Per_perf_counters[i][DP_MUL_ACC] = Per_dpmul_accesses[i];
+    sample_Per_perf_counters[i][DP_DIV_ACC] = Per_dpdiv_accesses[i];
   }
 }
 
@@ -518,10 +526,12 @@ void gpgpu_sim_wrapper::set_fp_accesses(double fpu_accesses,
 }
 
 void gpgpu_sim_wrapper::set_Per_fp_accesses(const std::vector<double> &Per_fpu_accesses,
-                                            const std::vector<double> &Per_fpmul_accesses) {
+                                            const std::vector<double> &Per_fpmul_accesses,
+                                            const std::vector<double> &Per_fpdiv_accesses) {
   for (unsigned i = 0; i < num_cores; i++) {
     sample_Per_perf_counters[i][FP_ACC] = Per_fpu_accesses[i];
     sample_Per_perf_counters[i][FP_MUL_ACC] = Per_fpmul_accesses[i];
+    sample_Per_perf_counters[i][FP_DIV_ACC] = Per_fpdiv_accesses[i];
   }
 }
 
@@ -535,8 +545,14 @@ void gpgpu_sim_wrapper::set_trans_accesses(double sqrt_accesses,
   sample_perf_counters[FP_EXP_ACC] = exp_accesses;
 }
 
-void gpgpu_sim_wrapper::set_Per_trans_accesses(const std::vector<double> &Per_exp_accesses) {
+void gpgpu_sim_wrapper::set_Per_trans_accesses(const std::vector<double> &Per_sqrt_accesses,
+                                               const std::vector<double> &Per_log_accesses,
+                                               const std::vector<double> &Per_sin_accesses,
+                                               const std::vector<double> &Per_exp_accesses) {
   for (unsigned i = 0; i < num_cores; i++) {
+    sample_Per_perf_counters[i][FP_SQRT_ACC] = Per_sqrt_accesses[i];
+    sample_Per_perf_counters[i][FP_LG_ACC] = Per_log_accesses[i];
+    sample_Per_perf_counters[i][FP_SIN_ACC] = Per_sin_accesses[i];
     sample_Per_perf_counters[i][FP_EXP_ACC] = Per_exp_accesses[i];
   }
 }
@@ -547,6 +563,14 @@ void gpgpu_sim_wrapper::set_tensor_accesses(double tensor_accesses) {
 
 void gpgpu_sim_wrapper::set_tex_accesses(double tex_accesses) {
   sample_perf_counters[TEX_ACC] = tex_accesses;
+}
+
+void gpgpu_sim_wrapper::set_Per_tensor_tex_accesses(const std::vector<double> &Per_tensor_accesses,
+                                                    const std::vector<double> &Per_tex_accesses) {
+  for (unsigned i = 0; i < num_cores; i++) {
+    sample_Per_perf_counters[i][TENSOR_ACC] = Per_tensor_accesses[i];
+    sample_Per_perf_counters[i][TEX_ACC] = Per_tex_accesses[i];
+  }
 }
 
 void gpgpu_sim_wrapper::set_avg_active_threads(float active_threads) {
@@ -626,10 +650,30 @@ void gpgpu_sim_wrapper::power_metrics_calculations() {
   for (unsigned i = 0; i < num_pwr_cmps; ++i) {
     lyhong_file << "gpu_" << pwr_cmp_label[i] << ": " << sample_cmp_pwr[i] << " " << std::endl;
   }
-  // sm start
+  // sm start   INT_MUL24P INT_MUL32P INT_DIVP FP_DIVP FP_SQRTP FP_LGP FP_SINP DP_DIVP TENSORP TEXP
   if (!sm_header_dumped) {
     for (unsigned i = 0; i < num_cores; i++)
       lyhong_SM_file << "SM_" << i << "_INT_MULP\t";
+    for (unsigned i = 0; i < num_cores; i++)
+      lyhong_SM_file << "SM_" << i << "_INT_MUL24P\t";
+    for (unsigned i = 0; i < num_cores; i++)
+      lyhong_SM_file << "SM_" << i << "_INT_MUL32P\t";
+    for (unsigned i = 0; i < num_cores; i++)
+      lyhong_SM_file << "SM_" << i << "_INT_DIVP\t";
+    for (unsigned i = 0; i < num_cores; i++)
+      lyhong_SM_file << "SM_" << i << "_FP_DIVP\t";
+    for (unsigned i = 0; i < num_cores; i++)
+      lyhong_SM_file << "SM_" << i << "_FP_SQRTP\t";
+    for (unsigned i = 0; i < num_cores; i++)
+      lyhong_SM_file << "SM_" << i << "_FP_LGP\t";
+    for (unsigned i = 0; i < num_cores; i++)
+      lyhong_SM_file << "SM_" << i << "_FP_SINP\t";
+    for (unsigned i = 0; i < num_cores; i++)
+      lyhong_SM_file << "SM_" << i << "_DP_DIVP\t";
+    for (unsigned i = 0; i < num_cores; i++)
+      lyhong_SM_file << "SM_" << i << "_TENSORP\t";
+    for (unsigned i = 0; i < num_cores; i++)
+      lyhong_SM_file << "SM_" << i << "_TEXP\t";
     for (unsigned i = 0; i < num_cores; i++)
       lyhong_SM_file << "SM_" << i << "_DPUP\t";
     for (unsigned i = 0; i < num_cores; i++)
@@ -646,6 +690,26 @@ void gpgpu_sim_wrapper::power_metrics_calculations() {
   }
   for (unsigned i = 0; i < num_cores; i++)
     lyhong_SM_file << sample_Per_cmp_pwr[i][INT_MULP] << "\t";
+  for (unsigned i = 0; i < num_cores; i++)
+    lyhong_SM_file << sample_Per_cmp_pwr[i][INT_MUL24P] << "\t";
+  for (unsigned i = 0; i < num_cores; i++)
+    lyhong_SM_file << sample_Per_cmp_pwr[i][INT_MUL32P] << "\t";
+  for (unsigned i = 0; i < num_cores; i++)
+    lyhong_SM_file << sample_Per_cmp_pwr[i][INT_DIVP] << "\t";
+  for (unsigned i = 0; i < num_cores; i++)
+    lyhong_SM_file << sample_Per_cmp_pwr[i][FP_DIVP] << "\t";
+  for (unsigned i = 0; i < num_cores; i++)
+    lyhong_SM_file << sample_Per_cmp_pwr[i][FP_SQRTP] << "\t";
+  for (unsigned i = 0; i < num_cores; i++)
+    lyhong_SM_file << sample_Per_cmp_pwr[i][FP_LGP] << "\t";
+  for (unsigned i = 0; i < num_cores; i++)
+    lyhong_SM_file << sample_Per_cmp_pwr[i][FP_SINP] << "\t";
+  for (unsigned i = 0; i < num_cores; i++)
+    lyhong_SM_file << sample_Per_cmp_pwr[i][DP_DIVP] << "\t";
+  for (unsigned i = 0; i < num_cores; i++)
+    lyhong_SM_file << sample_Per_cmp_pwr[i][TENSORP] << "\t";
+  for (unsigned i = 0; i < num_cores; i++)
+    lyhong_SM_file << sample_Per_cmp_pwr[i][TEXP] << "\t";
   for (unsigned i = 0; i < num_cores; i++)
     lyhong_SM_file << sample_Per_cmp_pwr[i][DPUP] << "\t";
   for (unsigned i = 0; i < num_cores; i++)
@@ -1119,18 +1183,48 @@ void gpgpu_sim_wrapper::update_components_power() {
       sample_Per_cmp_pwr[i][DPUP] = 0;
     }
     if (tot_sfu_accesses != 0) {
+      sample_Per_cmp_pwr[i][INT_MUL24P] =
+        sample_sfu_pwr * sample_Per_perf_counters[i][INT_MUL24_ACC] / tot_sfu_accesses;
+      sample_Per_cmp_pwr[i][INT_MUL32P] =
+        sample_sfu_pwr * sample_Per_perf_counters[i][INT_MUL32_ACC] / tot_sfu_accesses;
+      sample_Per_cmp_pwr[i][INT_DIVP] =
+        sample_sfu_pwr * sample_Per_perf_counters[i][INT_DIV_ACC] / tot_sfu_accesses;
       sample_Per_cmp_pwr[i][FP_MULP] =
         sample_sfu_pwr * sample_Per_perf_counters[i][FP_MUL_ACC] / tot_sfu_accesses;
+      sample_Per_cmp_pwr[i][FP_DIVP] =
+        sample_sfu_pwr * sample_Per_perf_counters[i][FP_DIV_ACC] / tot_sfu_accesses;
+      sample_Per_cmp_pwr[i][FP_SQRTP] =
+        sample_sfu_pwr * sample_Per_perf_counters[i][FP_SQRT_ACC] / tot_sfu_accesses;
+      sample_Per_cmp_pwr[i][FP_LGP] =
+        sample_sfu_pwr * sample_Per_perf_counters[i][FP_LG_ACC] / tot_sfu_accesses;
+      sample_Per_cmp_pwr[i][FP_SINP] =
+        sample_sfu_pwr * sample_Per_perf_counters[i][FP_SIN_ACC] / tot_sfu_accesses;
       sample_Per_cmp_pwr[i][FP_EXP] =
         sample_sfu_pwr * sample_Per_perf_counters[i][FP_EXP_ACC] / tot_sfu_accesses;
       sample_Per_cmp_pwr[i][DP_MULP] =
         sample_sfu_pwr * sample_Per_perf_counters[i][DP_MUL_ACC] / tot_sfu_accesses;
+      sample_Per_cmp_pwr[i][DP_DIVP] =
+        sample_sfu_pwr * sample_Per_perf_counters[i][DP_DIV_ACC] / tot_sfu_accesses;
+      sample_Per_cmp_pwr[i][TENSORP] =
+        sample_sfu_pwr * sample_Per_perf_counters[i][TENSOR_ACC] / tot_sfu_accesses;
+      sample_Per_cmp_pwr[i][TEXP] =
+        sample_sfu_pwr * sample_Per_perf_counters[i][TEX_ACC] / tot_sfu_accesses;
       sample_Per_cmp_pwr[i][INT_MULP] =
         sample_sfu_pwr * sample_Per_perf_counters[i][INT_MUL_ACC] / tot_sfu_accesses;
     } else {
+      sample_Per_cmp_pwr[i][INT_MUL24P] = 0;
+      sample_Per_cmp_pwr[i][INT_MUL32P] = 0;
+      sample_Per_cmp_pwr[i][INT_DIVP] = 0;
       sample_Per_cmp_pwr[i][FP_MULP] = 0;
+      sample_Per_cmp_pwr[i][FP_DIVP] = 0;
+      sample_Per_cmp_pwr[i][FP_SQRTP] = 0;
+      sample_Per_cmp_pwr[i][FP_LGP] = 0;
+      sample_Per_cmp_pwr[i][FP_SINP] = 0;
       sample_Per_cmp_pwr[i][FP_EXP] = 0;
       sample_Per_cmp_pwr[i][DP_MULP] = 0;
+      sample_Per_cmp_pwr[i][DP_DIVP] = 0;
+      sample_Per_cmp_pwr[i][TENSORP] = 0;
+      sample_Per_cmp_pwr[i][TEXP] = 0;
       sample_Per_cmp_pwr[i][INT_MULP] = 0;
     }
   }

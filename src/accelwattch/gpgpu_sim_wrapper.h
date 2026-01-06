@@ -134,18 +134,23 @@ class gpgpu_sim_wrapper {
   void set_int_accesses(double ialu_accesses, double imul24_accesses,
                         double imul32_accesses, double imul_accesses,
                         double idiv_accesses);
-  void set_Per_int_accesses(const std::vector<double> &imul_accesses);
+  void set_Per_int_accesses(const std::vector<double> &Per_imul24_accesses,const std::vector<double> &Per_imul32_accesses,
+                            const std::vector<double> &Per_idiv_accesses,const std::vector<double> &Per_imul_accesses);
   void set_dp_accesses(double dpu_accesses, double dpmul_accesses,
                        double dpdiv_accesses);
-  void set_Per_dp_accesses(const std::vector<double> &dpu_accesses, const std::vector<double> &Per_dpmul_accesses);
+  void set_Per_dp_accesses(const std::vector<double> &Per_dpu_accesses, const std::vector<double> &Per_dpmul_accesses,
+                           const std::vector<double> &Per_dpdiv_accesses);
   void set_fp_accesses(double fpu_accesses, double fpmul_accesses,
                        double fpdiv_accesses);
-  void set_Per_fp_accesses(const std::vector<double> &Per_fpu_accesses,const std::vector<double> &Per_fpmul_accesses);
+  void set_Per_fp_accesses(const std::vector<double> &Per_fpu_accesses,const std::vector<double> &Per_fpmul_accesses,
+                           const std::vector<double> &Per_fpdiv_accesses);
   void set_trans_accesses(double sqrt_accesses, double log_accesses,
                           double sin_accesses, double exp_accesses);
-  void set_Per_trans_accesses(const std::vector<double> &Per_exp_accesses);
+  void set_Per_trans_accesses(const std::vector<double> &Per_sqrt_accesses,const std::vector<double> &Per_log_accesses,
+                              const std::vector<double> &Per_sin_accesses,const std::vector<double> &Per_exp_accesses);
   void set_tensor_accesses(double tensor_accesses);
   void set_tex_accesses(double tex_accesses);
+  void set_Per_tensor_tex_accesses(const std::vector<double> &Per_tensor_accesses,const std::vector<double> &Per_tex_accesses);
   void set_avg_active_threads(float active_threads);
   void set_active_lanes_power(double sp_avg_active_lane,
                               double sfu_avg_active_lane);

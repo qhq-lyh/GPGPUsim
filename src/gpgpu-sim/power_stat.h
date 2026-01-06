@@ -379,6 +379,18 @@ class power_stat_t {
     }
     return total_inst;
   }
+  std::vector<double> Per_get_sqrt_accessess(bool aggregate_stat) {
+    unsigned num_shader = m_config->num_shader();
+    std::vector<double> inst_per_core(num_shader, 0.0);
+    for (unsigned i = 0; i < m_config->num_shader(); i++) {
+      if (aggregate_stat)
+        inst_per_core[i] = (pwr_core_stat->m_num_sqrt_acesses[CURRENT_STAT_IDX][i]);
+      else
+        inst_per_core[i] = (pwr_core_stat->m_num_sqrt_acesses[CURRENT_STAT_IDX][i]) -
+                          (pwr_core_stat->m_num_sqrt_acesses[PREV_STAT_IDX][i]);
+    }
+    return inst_per_core;
+  }
   double get_log_accessess(bool aggregate_stat) {
     double total_inst = 0;
     for (unsigned i = 0; i < m_config->num_shader(); i++) {
@@ -390,6 +402,18 @@ class power_stat_t {
     }
     return total_inst;
   }
+  std::vector<double> Per_get_log_accessess(bool aggregate_stat) {
+    unsigned num_shader = m_config->num_shader();
+    std::vector<double> inst_per_core(num_shader, 0.0);
+    for (unsigned i = 0; i < m_config->num_shader(); i++) {
+      if (aggregate_stat)
+        inst_per_core[i] = (pwr_core_stat->m_num_log_acesses[CURRENT_STAT_IDX][i]);
+      else
+        inst_per_core[i] = (pwr_core_stat->m_num_log_acesses[CURRENT_STAT_IDX][i]) -
+                          (pwr_core_stat->m_num_log_acesses[PREV_STAT_IDX][i]);
+    }
+    return inst_per_core;
+  }
   double get_sin_accessess(bool aggregate_stat) {
     double total_inst = 0;
     for (unsigned i = 0; i < m_config->num_shader(); i++) {
@@ -400,6 +424,18 @@ class power_stat_t {
                       (pwr_core_stat->m_num_sin_acesses[PREV_STAT_IDX][i]);
     }
     return total_inst;
+  }
+  std::vector<double> Per_get_sin_accessess(bool aggregate_stat) {
+    unsigned num_shader = m_config->num_shader();
+    std::vector<double> inst_per_core(num_shader, 0.0);
+    for (unsigned i = 0; i < m_config->num_shader(); i++) {
+      if (aggregate_stat)
+        inst_per_core[i] = (pwr_core_stat->m_num_sin_acesses[CURRENT_STAT_IDX][i]);
+      else
+        inst_per_core[i] = (pwr_core_stat->m_num_sin_acesses[CURRENT_STAT_IDX][i]) -
+                          (pwr_core_stat->m_num_sin_acesses[PREV_STAT_IDX][i]);
+    }
+    return inst_per_core;
   }
   double get_exp_accessess(bool aggregate_stat) {
     double total_inst = 0;
@@ -447,6 +483,19 @@ class power_stat_t {
     return total_inst;
   }
 
+  std::vector<double> Per_get_intdiv_accessess(bool aggregate_stat) {
+    unsigned num_shader = m_config->num_shader();
+    std::vector<double> inst_per_core(num_shader, 0.0);
+    for (unsigned i = 0; i < m_config->num_shader(); i++) {
+      if (aggregate_stat)
+        inst_per_core[i] = (pwr_core_stat->m_num_idiv_acesses[CURRENT_STAT_IDX][i]);
+      else
+        inst_per_core[i] = (pwr_core_stat->m_num_idiv_acesses[CURRENT_STAT_IDX][i]) -
+                          (pwr_core_stat->m_num_idiv_acesses[PREV_STAT_IDX][i]);
+    }
+    return inst_per_core;
+  }
+
   double get_fpdiv_accessess(bool aggregate_stat) {
     double total_inst = 0;
     for (unsigned i = 0; i < m_config->num_shader(); i++) {
@@ -458,6 +507,19 @@ class power_stat_t {
             (pwr_core_stat->m_num_fpdiv_acesses[PREV_STAT_IDX][i]);
     }
     return total_inst;
+  }
+
+  std::vector<double> Per_get_fpdiv_accessess(bool aggregate_stat) {
+    unsigned num_shader = m_config->num_shader();
+    std::vector<double> inst_per_core(num_shader, 0.0);
+    for (unsigned i = 0; i < m_config->num_shader(); i++) {
+      if (aggregate_stat)
+        inst_per_core[i] = (pwr_core_stat->m_num_fpdiv_acesses[CURRENT_STAT_IDX][i]);
+      else
+        inst_per_core[i] = (pwr_core_stat->m_num_fpdiv_acesses[CURRENT_STAT_IDX][i]) -
+                          (pwr_core_stat->m_num_fpdiv_acesses[PREV_STAT_IDX][i]);
+    }
+    return inst_per_core;
   }
 
   double get_intmul32_accessess(bool aggregate_stat) {
@@ -474,6 +536,19 @@ class power_stat_t {
     return total_inst;
   }
 
+  std::vector<double> Per_get_intmul32_accessess(bool aggregate_stat) {
+    unsigned num_shader = m_config->num_shader();
+    std::vector<double> inst_per_core(num_shader, 0.0);
+    for (unsigned i = 0; i < m_config->num_shader(); i++) {
+      if (aggregate_stat)
+        inst_per_core[i] = (pwr_core_stat->m_num_imul32_acesses[CURRENT_STAT_IDX][i]);
+      else
+        inst_per_core[i] = (pwr_core_stat->m_num_imul32_acesses[CURRENT_STAT_IDX][i]) -
+                          (pwr_core_stat->m_num_imul32_acesses[PREV_STAT_IDX][i]);
+    }
+    return inst_per_core;
+  }
+
   double get_intmul24_accessess(bool aggregate_stat) {
     double total_inst = 0;
     for (unsigned i = 0; i < m_config->num_shader(); i++) {
@@ -486,6 +561,19 @@ class power_stat_t {
             (pwr_core_stat->m_num_imul24_acesses[PREV_STAT_IDX][i]);
     }
     return total_inst;
+  }
+
+  std::vector<double> Per_get_intmul24_accessess(bool aggregate_stat) {
+    unsigned num_shader = m_config->num_shader();
+    std::vector<double> inst_per_core(num_shader, 0.0);
+    for (unsigned i = 0; i < m_config->num_shader(); i++) {
+      if (aggregate_stat)
+        inst_per_core[i] = (pwr_core_stat->m_num_imul24_acesses[CURRENT_STAT_IDX][i]);
+      else
+        inst_per_core[i] = (pwr_core_stat->m_num_imul24_acesses[CURRENT_STAT_IDX][i]) -
+                          (pwr_core_stat->m_num_imul24_acesses[PREV_STAT_IDX][i]);
+    }
+    return inst_per_core;
   }
 
   double get_intmul_accessess(bool aggregate_stat) {
@@ -630,6 +718,20 @@ class power_stat_t {
     return total_inst;
   }
 
+  std::vector<double> Per_get_dpdiv_accessess(bool aggregate_stat) {
+    unsigned num_shader = m_config->num_shader();
+    std::vector<double> inst_per_core(num_shader, 0.0);
+    for (unsigned i = 0; i < m_config->num_shader(); i++) {
+      if (aggregate_stat)
+        inst_per_core[i] = (pwr_core_stat->m_num_dpdiv_acesses[CURRENT_STAT_IDX][i]);
+      else
+        inst_per_core[i] = 
+            (pwr_core_stat->m_num_dpdiv_acesses[CURRENT_STAT_IDX][i]) -
+            (pwr_core_stat->m_num_dpdiv_acesses[PREV_STAT_IDX][i]);
+    }
+    return inst_per_core;
+  }
+
   double get_tensor_accessess(bool aggregate_stat) {
     double total_inst = 0;
     for (unsigned i = 0; i < m_config->num_shader(); i++) {
@@ -642,6 +744,20 @@ class power_stat_t {
             (pwr_core_stat->m_num_tensor_core_acesses[PREV_STAT_IDX][i]);
     }
     return total_inst;
+  }
+
+  std::vector<double> Per_get_tensor_accessess(bool aggregate_stat) {
+    unsigned num_shader = m_config->num_shader();
+    std::vector<double> inst_per_core(num_shader, 0.0);
+    for (unsigned i = 0; i < m_config->num_shader(); i++) {
+      if (aggregate_stat)
+        inst_per_core[i] = (pwr_core_stat->m_num_tensor_core_acesses[CURRENT_STAT_IDX][i]);
+      else
+        inst_per_core[i] = 
+            (pwr_core_stat->m_num_tensor_core_acesses[CURRENT_STAT_IDX][i]) -
+            (pwr_core_stat->m_num_tensor_core_acesses[PREV_STAT_IDX][i]);
+    }
+    return inst_per_core;
   }
 
   double get_const_accessess(bool aggregate_stat) {
@@ -667,6 +783,20 @@ class power_stat_t {
                       (pwr_core_stat->m_num_tex_acesses[PREV_STAT_IDX][i]);
     }
     return total_inst;
+  }
+
+  std::vector<double> Per_get_tex_accessess(bool aggregate_stat) {
+    unsigned num_shader = m_config->num_shader();
+    std::vector<double> inst_per_core(num_shader, 0.0);
+    for (unsigned i = 0; i < m_config->num_shader(); i++) {
+      if (aggregate_stat)
+        inst_per_core[i] = (pwr_core_stat->m_num_tex_acesses[CURRENT_STAT_IDX][i]);
+      else
+        inst_per_core[i] = 
+            (pwr_core_stat->m_num_tex_acesses[CURRENT_STAT_IDX][i]) -
+            (pwr_core_stat->m_num_tex_acesses[PREV_STAT_IDX][i]);
+    }
+    return inst_per_core;
   }
 
   double get_sp_active_lanes() {
