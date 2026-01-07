@@ -66,11 +66,23 @@ void mcpat_cycle(const gpgpu_sim_config &config,
     sum_active_sm += lyhong_active_sm[i];
   }
   if (first_print) {
-    printf("Lyhong_print(first): sum_active_sm = %f, tot_cycle = %u, cycle = %u, stat_sample_freq = %u\n", sum_active_sm, tot_cycle, cycle, stat_sample_freq);
+    printf("Lyhong_print: sum_active_sm = %f, cycle = %u, tot_cycle = %u, stat_sample_freq = %u\n", sum_active_sm, cycle, tot_cycle, stat_sample_freq);
     first_print = false;
+    printf("  Active SMs: ");
+    for (size_t i = 0; i < lyhong_active_sm.size(); ++i) {
+      if (lyhong_active_sm[i] > 0.0f)
+        printf("%zu ", i);
+    }
+    printf("\n");
   }
   if (sum_active_sm != last_sum_active_sm) {
-    printf("Lyhong_print(has changed): sum_active_sm = %f, cycle = %u, tot_cycle = %u\n", sum_active_sm, cycle, tot_cycle);
+    printf("Lyhong_print: sum_active_sm = %f, cycle = %u, tot_cycle = %u\n", sum_active_sm, cycle, tot_cycle);
+    printf("  Active SMs: ");
+    for (size_t i = 0; i < lyhong_active_sm.size(); ++i) {
+      if (lyhong_active_sm[i] > 0.0f)
+        printf("%zu ", i);
+    }
+    printf("\n");
   }
   last_sum_active_sm = sum_active_sm;
   // add done
