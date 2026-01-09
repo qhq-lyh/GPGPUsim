@@ -110,6 +110,7 @@ POSSIBILITY OF SUCH DAMAGE. -->
 
 
 		<param name="GPU_Architecture" value="1"/><!-- 0-G80; 1-Fermi; others not supported -->
+		<param name="number_of_cores" value="1"/> <!-- SMs -->
 		<param name="architecture" value="1"/> <!-- fermi:1 quadro:2 other: undefined-->
 		<param name="number_of_L1Directories" value="0"/>
 		<param name="number_of_L2Directories" value="0"/>
