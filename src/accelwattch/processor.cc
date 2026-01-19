@@ -70,7 +70,7 @@ Processor::Processor(ParseXML *XML_interface)
   idle_core_power = 0;
   set_proc_param();
   if (procdynp.homoCore)
-    numCore = procdynp.numCore == 0 ? 0 : 1;
+    numCore = procdynp.numCore == 0 ? 0 : procdynp.numCore;
   else
     numCore = procdynp.numCore;
 
@@ -111,7 +111,7 @@ Processor::Processor(ParseXML *XML_interface)
     numL2Dir = procdynp.numL2Dir;
 
   for (i = 0; i < numCore; i++) {
-    cores.push_back(new Core(XML, i, &interface_ip));
+    cores.push_back(new Core(XML, 0, &interface_ip));
     cores[i]->computeEnergy();
     cores[i]->computeEnergy(false);
     if (procdynp.homoCore) {
