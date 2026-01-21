@@ -318,7 +318,7 @@ void gpgpu_sim_wrapper::set_inst_power(bool clk_gated_lanes, double tot_cycles,
 void gpgpu_sim_wrapper::set_Per_inst_power(bool clk_gated_lanes, double tot_cycles,
                                           double busy_cycles, const std::vector<double> &Per_tot_inst,
                                           const std::vector<double> &Per_int_inst, const std::vector<double> &Per_fp_inst,
-                                          double load_inst, double store_inst,
+                                          const std::vector<double> &Per_load_inst, const std::vector<double> &Per_store_inst,
                                           const std::vector<double> &Per_committed_inst) {
   for (unsigned i = 0; i < num_cores; i++) {
     p->sys.core[i].gpgpu_clock_gated_lanes = clk_gated_lanes;
@@ -335,8 +335,8 @@ void gpgpu_sim_wrapper::set_Per_inst_power(bool clk_gated_lanes, double tot_cycl
     sample_Per_perf_counters[i][TOT_INST] = Per_tot_inst[i];
 
     // L1 cache is not distributed to each core or precisely allocated to each core. Is precision required?
-    p->sys.core[i].load_instructions  = load_inst;
-    p->sys.core[i].store_instructions = store_inst;
+    p->sys.core[i].load_instructions  = Per_load_inst[i];
+    p->sys.core[i].store_instructions = Per_store_inst[i];
   }
 }
 
@@ -374,6 +374,18 @@ void gpgpu_sim_wrapper::set_ccache_power(double hits, double misses) {
   // TODO: coalescing logic is counted as part of the caches power (this is not
   // valid for no-caches architectures)
 }
+void gpgpu_sim_wrapper::set_Per_ccache_power(const std::vector<double> &Per_hits,
+                                             const std::vector<double> &Per_misses) {
+  for (unsigned i = 0; i < num_cores; i++) {
+    p->sys.core[i].ccache.read_accesses =
+        Per_hits[i] * p->sys.scaling_coefficients[CC_H] +
+        Per_misses[i] * p->sys.scaling_coefficients[CC_M];
+    p->sys.core[i].ccache.read_misses =
+        Per_misses[i] * p->sys.scaling_coefficients[CC_M];
+    sample_Per_perf_counters[i][CC_H] = Per_hits[i];
+    sample_Per_perf_counters[i][CC_M] = Per_misses[i];
+  }
+}
 
 void gpgpu_sim_wrapper::set_tcache_power(double hits, double misses) {
   p->sys.core[0].tcache.read_accesses =
@@ -386,11 +398,30 @@ void gpgpu_sim_wrapper::set_tcache_power(double hits, double misses) {
   // TODO: coalescing logic is counted as part of the caches power (this is not
   // valid for no-caches architectures)
 }
+void gpgpu_sim_wrapper::set_Per_tcache_power(const std::vector<double> &Per_hits,
+                                            const std::vector<double> &Per_misses) {
+  for (unsigned i = 0; i < num_cores; i++) {
+    p->sys.core[i].tcache.read_accesses =
+        Per_hits[i] * p->sys.scaling_coefficients[TC_H] +
+        Per_misses[i] * p->sys.scaling_coefficients[TC_M];
+    p->sys.core[i].tcache.read_misses =
+        Per_misses[i] * p->sys.scaling_coefficients[TC_M];
+    sample_Per_perf_counters[i][TC_H] = Per_hits[i];
+    sample_Per_perf_counters[i][TC_M] = Per_misses[i];
+  }
+}
 
 void gpgpu_sim_wrapper::set_shrd_mem_power(double accesses) {
   p->sys.core[0].sharedmemory.read_accesses =
       accesses * p->sys.scaling_coefficients[SHRD_ACC];
   sample_perf_counters[SHRD_ACC] = accesses;
+}
+void gpgpu_sim_wrapper::set_Per_shrd_mem_power(const std::vector<double> &Per_accesses) {
+  for (unsigned i = 0; i < num_cores; i++) {
+    p->sys.core[i].sharedmemory.read_accesses =
+        Per_accesses[i] * p->sys.scaling_coefficients[SHRD_ACC];
+    sample_Per_perf_counters[i][SHRD_ACC] = Per_accesses[i];
+  }
 }
 
 void gpgpu_sim_wrapper::set_l1cache_power(double read_hits, double read_misses,
@@ -412,6 +443,29 @@ void gpgpu_sim_wrapper::set_l1cache_power(double read_hits, double read_misses,
   sample_perf_counters[DC_WM] = write_misses;
   // TODO: coalescing logic is counted as part of the caches power (this is not
   // valid for no-caches architectures)
+}
+// Lyhong_TODO: L1 cache is not distributed to each core or precisely allocated to each core. Is precision required?
+void gpgpu_sim_wrapper::set_Per_l1cache_power(
+    const std::vector<double> &Per_read_hits,
+    const std::vector<double> &Per_read_misses,
+    const std::vector<double> &Per_write_hits,
+    const std::vector<double> &Per_write_misses) {
+  for (unsigned i = 0; i < num_cores; i++) {
+    p->sys.core[i].dcache.read_accesses =
+        Per_read_hits[i] * p->sys.scaling_coefficients[DC_RH] +
+        Per_read_misses[i] * p->sys.scaling_coefficients[DC_RM];
+    p->sys.core[i].dcache.read_misses =
+        Per_read_misses[i] * p->sys.scaling_coefficients[DC_RM];
+    p->sys.core[i].dcache.write_accesses =
+        Per_write_hits[i] * p->sys.scaling_coefficients[DC_WH] +
+        Per_write_misses[i] * p->sys.scaling_coefficients[DC_WM];
+    p->sys.core[i].dcache.write_misses =
+        Per_write_misses[i] * p->sys.scaling_coefficients[DC_WM];
+    sample_Per_perf_counters[i][DC_RH] = Per_read_hits[i];
+    sample_Per_perf_counters[i][DC_RM] = Per_read_misses[i];
+    sample_Per_perf_counters[i][DC_WH] = Per_write_hits[i];
+    sample_Per_perf_counters[i][DC_WM] = Per_write_misses[i];
+  }
 }
 
 void gpgpu_sim_wrapper::set_l2cache_power(double read_hits, double read_misses,

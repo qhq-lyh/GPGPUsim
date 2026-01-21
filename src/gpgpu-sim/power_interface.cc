@@ -99,6 +99,15 @@ void mcpat_cycle(const gpgpu_sim_config &config,
         power_stats->get_l1d_read_accesses(0),
         power_stats->get_l1d_write_accesses(0),
         power_stats->get_committed_inst(0));
+    // Lyhong_TODO: 
+    // wrapper->set_Per_inst_power(
+    //     shdr_config->gpgpu_clock_gated_lanes, stat_sample_freq,
+    //     stat_sample_freq, power_stats->Per_get_total_inst(0),
+    //     power_stats->Per_get_total_int_inst(0),
+    //     power_stats->Per_get_total_fp_inst(0),
+    //     power_stats->Per_get_l1d_read_accesses(0), ????
+    //     power_stats->Per_get_l1d_write_accesses(0), ????
+    //     power_stats->Per_get_committed_inst(0));
 
     // Single RF for both int and fp ops
     wrapper->set_regfile_power(power_stats->get_regfile_reads(0),
@@ -113,14 +122,30 @@ void mcpat_cycle(const gpgpu_sim_config &config,
     wrapper->set_ccache_power(
         power_stats->get_const_accessess(0),
         0);  // assuming all HITS in constant cache for now
+    // Lyhong_TODO:
+    // std::vector<double> misses(shdr_config->num_shader(), 0.0);
+    // wrapper->set_Per_ccache_power(
+    //     power_stats->Per_get_const_accessess(0), misses);
     wrapper->set_tcache_power(power_stats->get_texture_c_hits(),
                               power_stats->get_texture_c_misses());
+    // Lyhong_TODO:
+    // wrapper->set_Per_tcache_power(
+    //     power_stats->Per_get_texture_c_hits(), ????
+    //     power_stats->Per_get_texture_c_misses()); ????
     wrapper->set_shrd_mem_power(power_stats->get_shmem_access(0));
+    // Lyhong_TODO: 
+    // wrapper->set_Per_shrd_mem_power(power_stats->Per_get_shmem_access(0));
 
     wrapper->set_l1cache_power(power_stats->get_l1d_read_hits(0),
                                power_stats->get_l1d_read_misses(0),
                                power_stats->get_l1d_write_hits(0),
                                power_stats->get_l1d_write_misses(0));
+    //  Lyhong_TODO:
+    // wrapper->set_Per_l1cache_power(
+    //     power_stats->Per_get_l1d_read_hits(0), ????
+    //     power_stats->Per_get_l1d_read_misses(0), ????
+    //     power_stats->Per_get_l1d_write_hits(0), ????
+    //     power_stats->Per_get_l1d_write_misses(0)); ????
 
     wrapper->set_l2cache_power(
         power_stats->get_l2_read_hits(0), power_stats->get_l2_read_misses(0),

@@ -120,16 +120,24 @@ class gpgpu_sim_wrapper {
                           double busy_cycles, const std::vector<double> &Per_tot_inst,
                           const std::vector<double> &Per_int_inst,
                           const std::vector<double> &Per_fp_inst,
-                          double Per_load_inst,
-                          double Per_store_inst,
+                          const std::vector<double> &Per_Per_load_inst,
+                          const std::vector<double> &Per_Per_store_inst,
                           const std::vector<double> &Per_committed_inst);
   void set_regfile_power(double reads, double writes, double ops);
   void set_icache_power(double accesses, double misses);
   void set_ccache_power(double accesses, double misses);
+  void set_Per_ccache_power(const std::vector<double> &Per_hits,const std::vector<double> &Per_misses);
   void set_tcache_power(double accesses, double misses);
+  void set_Per_tcache_power(const std::vector<double> &Per_hits,const std::vector<double> &Per_misses);
   void set_shrd_mem_power(double accesses);
+  void set_Per_shrd_mem_power(const std::vector<double> &Per_accesses);
   void set_l1cache_power(double read_accesses, double read_misses,
                          double write_accesses, double write_misses);
+  void set_Per_l1cache_power(
+    const std::vector<double> &Per_read_hits,
+    const std::vector<double> &Per_read_misses,
+    const std::vector<double> &Per_write_hits,
+    const std::vector<double> &Per_write_misses);
   void set_l2cache_power(double read_accesses, double read_misses,
                          double write_accesses, double write_misses);
   void set_num_cores(double num_core);
