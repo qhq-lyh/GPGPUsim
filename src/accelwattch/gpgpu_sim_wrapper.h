@@ -124,6 +124,7 @@ class gpgpu_sim_wrapper {
                           const std::vector<double> &Per_Per_store_inst,
                           const std::vector<double> &Per_committed_inst);
   void set_regfile_power(double reads, double writes, double ops);
+  void set_Per_regfile_power(const std::vector<double> &Per_reads,const std::vector<double> &Per_writes,const std::vector<double> &Per_ops);
   void set_icache_power(double accesses, double misses);
   void set_Per_icache_power(const std::vector<double> &Per_hits,const std::vector<double> &Per_misses);
   void set_ccache_power(double accesses, double misses);

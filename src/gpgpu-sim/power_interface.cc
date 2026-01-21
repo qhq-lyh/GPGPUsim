@@ -113,6 +113,11 @@ void mcpat_cycle(const gpgpu_sim_config &config,
     wrapper->set_regfile_power(power_stats->get_regfile_reads(0),
                                power_stats->get_regfile_writes(0),
                                power_stats->get_non_regfile_operands(0));
+    // Lyhong_TODO:
+    // wrapper->set_Per_regfile_power(
+    //     power_stats->Per_get_regfile_reads(0),
+    //     power_stats->Per_get_regfile_writes(0),
+    //     power_stats->Per_get_non_regfile_operands(0));
 
     // Instruction cache stats
     wrapper->set_icache_power(power_stats->get_inst_c_hits(0),

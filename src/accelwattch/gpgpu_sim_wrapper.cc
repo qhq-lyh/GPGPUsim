@@ -352,6 +352,21 @@ void gpgpu_sim_wrapper::set_regfile_power(double reads, double writes,
   sample_perf_counters[REG_WR] = writes;
   sample_perf_counters[NON_REG_OPs] = ops;
 }
+void gpgpu_sim_wrapper::set_Per_regfile_power(const std::vector<double> &Per_reads,
+                                              const std::vector<double> &Per_writes,
+                                              const std::vector<double> &Per_ops) {
+  for (unsigned i = 0; i < num_cores; i++) {
+    p->sys.core[i].int_regfile_reads =
+        Per_reads[i] * p->sys.scaling_coefficients[REG_RD];
+    p->sys.core[i].int_regfile_writes = 
+        Per_writes[i] * p->sys.scaling_coefficients[REG_WR];
+    p->sys.core[i].non_rf_operands =
+        Per_ops[i] * p->sys.scaling_coefficients[NON_REG_OPs];
+    sample_Per_perf_counters[i][REG_RD] = Per_reads[i];
+    sample_Per_perf_counters[i][REG_WR] = Per_writes[i];
+    sample_Per_perf_counters[i][NON_REG_OPs] = Per_ops[i];
+  }
+}
 
 void gpgpu_sim_wrapper::set_icache_power(double hits, double misses) {
   p->sys.core[0].icache.read_accesses =
