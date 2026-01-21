@@ -226,6 +226,11 @@ void mcpat_cycle(const gpgpu_sim_config &config,
     wrapper->set_exec_unit_power(power_stats->get_tot_fpu_accessess(0),
                                  power_stats->get_ialu_accessess(0),
                                  power_stats->get_tot_sfu_accessess(0));
+    // Lyhong_TODO:
+    // wrapper->set_Per_exec_unit_power(
+    //     power_stats->Per_get_tot_fpu_accessess(0),
+    //     power_stats->Per_get_ialu_accessess(0),
+    //     power_stats->Per_get_tot_sfu_accessess(0));
 
     wrapper->set_avg_active_threads(power_stats->get_active_threads(0));
 
@@ -239,6 +244,16 @@ void mcpat_cycle(const gpgpu_sim_config &config,
     assert(avg_sp_active_lanes <= 32);
     assert(avg_sfu_active_lanes <= 32);
     wrapper->set_active_lanes_power(avg_sp_active_lanes, avg_sfu_active_lanes);
+    // Lyhong_TODO:
+    // std::vector<double> Per_avg_sp_active_lanes = power_stats->Per_get_sp_active_lanes();
+    // std::vector<double> Per_avg_sfu_active_lanes = power_stats->Per_get_sfu_active_lanes();
+    // for(unsigned i = 0; i < shdr_config->num_shader(); i++) {
+    //  if (Per_avg_sp_active_lanes[i] > 32.0) Per_avg_sp_active_lanes[i] = 32.0;
+    //  if (Per_avg_sfu_active_lanes[i] > 32.0) Per_avg_sfu_active_lanes[i] = 32.0;
+    //  assert(Per_avg_sp_active_lanes[i] <= 32);
+    //  assert(Per_avg_sfu_active_lanes[i] <= 32);
+    // }
+    // wrapper->set_Per_active_lanes_power(Per_avg_sp_active_lanes, Per_avg_sfu_active_lanes);
 
     double n_icnt_simt_to_mem = (double)power_stats->get_icnt_simt_to_mem(
         0);  // # flits from SIMT clusters

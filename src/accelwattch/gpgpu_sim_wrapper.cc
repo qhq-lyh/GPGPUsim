@@ -558,6 +558,16 @@ void gpgpu_sim_wrapper::set_exec_unit_power(double fpu_accesses,
   p->sys.core[0].mul_accesses = sfu_accesses;
   tot_sfu_accesses = sfu_accesses;
 }
+// Lyhong_TODO: tot_fpu_accesses and tot_sfu_accesses are not defined for per-core accesses. Is it required?
+void gpgpu_sim_wrapper::set_Per_exec_unit_power(const std::vector<double> &Per_fpu_accesses,
+                                               const std::vector<double> &Per_ialu_accesses,
+                                               const std::vector<double> &Per_sfu_accesses) {
+  for (unsigned i = 0; i < num_cores; i++) {
+    p->sys.core[i].fpu_accesses = Per_fpu_accesses[i];
+    p->sys.core[i].ialu_accesses = Per_ialu_accesses[i];
+    p->sys.core[i].mul_accesses = Per_sfu_accesses[i];
+  }
+}
 
 PowerscalingCoefficients* gpgpu_sim_wrapper::get_scaling_coeffs() {
   PowerscalingCoefficients* scalingCoeffs = new PowerscalingCoefficients();
@@ -689,6 +699,13 @@ void gpgpu_sim_wrapper::set_active_lanes_power(double sp_avg_active_lane,
                                                double sfu_avg_active_lane) {
   p->sys.core[0].sp_average_active_lanes = sp_avg_active_lane;
   p->sys.core[0].sfu_average_active_lanes = sfu_avg_active_lane;
+}
+void gpgpu_sim_wrapper::set_Per_active_lanes_power(const std::vector<double> &Per_sp_avg_active_lane,
+                                                const std::vector<double> &Per_sfu_avg_active_lane) {
+  for (unsigned i = 0; i < num_cores; i++) {
+    p->sys.core[i].sp_average_active_lanes = Per_sp_avg_active_lane[i];
+    p->sys.core[i].sfu_average_active_lanes = Per_sfu_avg_active_lane[i];
+  }
 }
 
 void gpgpu_sim_wrapper::set_NoC_power(double noc_tot_acc) {

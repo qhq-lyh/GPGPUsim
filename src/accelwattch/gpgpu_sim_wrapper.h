@@ -148,6 +148,8 @@ class gpgpu_sim_wrapper {
   void set_mem_ctrl_power(double reads, double writes, double dram_precharge);
   void set_exec_unit_power(double fpu_accesses, double ialu_accesses,
                            double sfu_accesses);
+  void set_Per_exec_unit_power(const std::vector<double> &Per_fpu_accesses, const std::vector<double> &Per_ialu_accesses,
+                               const std::vector<double> &Per_sfu_accesses);
   void set_int_accesses(double ialu_accesses, double imul24_accesses,
                         double imul32_accesses, double imul_accesses,
                         double idiv_accesses);
@@ -171,6 +173,7 @@ class gpgpu_sim_wrapper {
   void set_avg_active_threads(float active_threads);
   void set_active_lanes_power(double sp_avg_active_lane,
                               double sfu_avg_active_lane);
+  void set_Per_active_lanes_power(const std::vector<double> &Per_sp_avg_active_lane, const std::vector<double> &Per_sfu_avg_active_lane);
   void set_NoC_power(double noc_tot_acc);
   bool sanity_check(double a, double b);
 
