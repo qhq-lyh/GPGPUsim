@@ -314,6 +314,32 @@ void gpgpu_sim_wrapper::set_inst_power(bool clk_gated_lanes, double tot_cycles,
   sample_perf_counters[TOT_INST] = tot_inst;
 }
 
+// Lyhong_TODO: L1 cache is not modeled per core yet
+void gpgpu_sim_wrapper::set_Per_inst_power(bool clk_gated_lanes, double tot_cycles,
+                                          double busy_cycles, const std::vector<double> &Per_tot_inst,
+                                          const std::vector<double> &Per_int_inst, const std::vector<double> &Per_fp_inst,
+                                          double load_inst, double store_inst,
+                                          const std::vector<double> &Per_committed_inst) {
+  for (unsigned i = 0; i < num_cores; i++) {
+    p->sys.core[i].gpgpu_clock_gated_lanes = clk_gated_lanes;
+    p->sys.core[i].total_cycles = tot_cycles;
+    p->sys.core[i].busy_cycles  = busy_cycles;
+    p->sys.core[i].total_instructions =
+        Per_tot_inst[i] * p->sys.scaling_coefficients[TOT_INST];
+    p->sys.core[i].int_instructions =
+        Per_int_inst[i] * p->sys.scaling_coefficients[FP_INT];
+    p->sys.core[i].fp_instructions =
+        Per_fp_inst[i] * p->sys.scaling_coefficients[FP_INT];
+    p->sys.core[i].committed_instructions = Per_committed_inst[i];
+    sample_Per_perf_counters[i][FP_INT] = Per_int_inst[i] + Per_fp_inst[i];
+    sample_Per_perf_counters[i][TOT_INST] = Per_tot_inst[i];
+
+    // L1 cache is not distributed to each core or precisely allocated to each core. Is precision required?
+    p->sys.core[i].load_instructions  = load_inst;
+    p->sys.core[i].store_instructions = store_inst;
+  }
+}
+
 void gpgpu_sim_wrapper::set_regfile_power(double reads, double writes,
                                           double ops) {
   p->sys.core[0].int_regfile_reads =

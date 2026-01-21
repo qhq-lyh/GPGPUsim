@@ -116,6 +116,13 @@ class gpgpu_sim_wrapper {
                       double busy_cycles, double tot_inst, double int_inst,
                       double fp_inst, double load_inst, double store_inst,
                       double committed_inst);
+  void set_Per_inst_power(bool clk_gated_lanes, double tot_cycles,
+                          double busy_cycles, const std::vector<double> &Per_tot_inst,
+                          const std::vector<double> &Per_int_inst,
+                          const std::vector<double> &Per_fp_inst,
+                          double Per_load_inst,
+                          double Per_store_inst,
+                          const std::vector<double> &Per_committed_inst);
   void set_regfile_power(double reads, double writes, double ops);
   void set_icache_power(double accesses, double misses);
   void set_ccache_power(double accesses, double misses);

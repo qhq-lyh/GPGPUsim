@@ -214,6 +214,18 @@ class power_stat_t {
     }
     return total_inst;
   }
+  std::vector<double> Per_get_total_inst(bool aggregate_stat) {
+    unsigned num_shader = m_config->num_shader();
+    std::vector<double> inst_per_core(num_shader, 0.0);
+    for (unsigned i = 0; i < m_config->num_shader(); i++) {
+      if (aggregate_stat)
+        inst_per_core[i] = (pwr_core_stat->m_num_decoded_insn[CURRENT_STAT_IDX][i]);
+      else
+        inst_per_core[i] = (pwr_core_stat->m_num_decoded_insn[CURRENT_STAT_IDX][i]) -
+                          (pwr_core_stat->m_num_decoded_insn[PREV_STAT_IDX][i]);
+    }
+    return inst_per_core;
+  }
   double get_total_int_inst(bool aggregate_stat) {
     double total_inst = 0;
     for (unsigned i = 0; i < m_config->num_shader(); i++) {
@@ -227,6 +239,18 @@ class power_stat_t {
     }
     return total_inst;
   }
+  std::vector<double> Per_get_total_int_inst(bool aggregate_stat) {
+    unsigned num_shader = m_config->num_shader();
+    std::vector<double> inst_per_core(num_shader, 0.0);
+    for (unsigned i = 0; i < m_config->num_shader(); i++) {
+      if (aggregate_stat)
+        inst_per_core[i] = (pwr_core_stat->m_num_INTdecoded_insn[CURRENT_STAT_IDX][i]);
+      else
+        inst_per_core[i] = (pwr_core_stat->m_num_INTdecoded_insn[CURRENT_STAT_IDX][i]) -
+                          (pwr_core_stat->m_num_INTdecoded_insn[PREV_STAT_IDX][i]);
+    }
+    return inst_per_core;
+  }
   double get_total_fp_inst(bool aggregate_stat) {
     double total_inst = 0;
     for (unsigned i = 0; i < m_config->num_shader(); i++) {
@@ -239,6 +263,18 @@ class power_stat_t {
             (pwr_core_stat->m_num_FPdecoded_insn[PREV_STAT_IDX][i]);
     }
     return total_inst;
+  }
+  std::vector<double> Per_get_total_fp_inst(bool aggregate_stat) {
+    unsigned num_shader = m_config->num_shader();
+    std::vector<double> inst_per_core(num_shader, 0.0);
+    for (unsigned i = 0; i < m_config->num_shader(); i++) {
+      if (aggregate_stat)
+        inst_per_core[i] = (pwr_core_stat->m_num_FPdecoded_insn[CURRENT_STAT_IDX][i]);
+      else
+        inst_per_core[i] = (pwr_core_stat->m_num_FPdecoded_insn[CURRENT_STAT_IDX][i]) -
+                          (pwr_core_stat->m_num_FPdecoded_insn[PREV_STAT_IDX][i]);
+    }
+    return inst_per_core;
   }
   double get_total_load_inst() {
     double total_inst = 0;
@@ -300,6 +336,26 @@ class power_stat_t {
             (pwr_core_stat->m_num_sp_committed[PREV_STAT_IDX][i]);
     }
     return total_inst;
+  }
+  std::vector<double> Per_get_committed_inst(bool aggregate_stat) {
+    unsigned num_shader = m_config->num_shader();
+    std::vector<double> inst_per_core(num_shader, 0.0);
+    for (unsigned i = 0; i < m_config->num_shader(); i++) {
+      if (aggregate_stat)
+        inst_per_core[i] =
+            (pwr_core_stat->m_num_mem_committed[CURRENT_STAT_IDX][i]) +
+            (pwr_core_stat->m_num_sfu_committed[CURRENT_STAT_IDX][i]) +
+            (pwr_core_stat->m_num_sp_committed[CURRENT_STAT_IDX][i]);
+      else
+        inst_per_core[i] =
+            (pwr_core_stat->m_num_mem_committed[CURRENT_STAT_IDX][i]) -
+            (pwr_core_stat->m_num_mem_committed[PREV_STAT_IDX][i]) +
+            (pwr_core_stat->m_num_sfu_committed[CURRENT_STAT_IDX][i]) -
+            (pwr_core_stat->m_num_sfu_committed[PREV_STAT_IDX][i]) +
+            (pwr_core_stat->m_num_sp_committed[CURRENT_STAT_IDX][i]) -
+            (pwr_core_stat->m_num_sp_committed[PREV_STAT_IDX][i]);
+    }
+    return inst_per_core;
   }
   double get_regfile_reads(bool aggregate_stat) {
     double total_inst = 0;
