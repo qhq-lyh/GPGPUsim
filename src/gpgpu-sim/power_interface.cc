@@ -117,6 +117,10 @@ void mcpat_cycle(const gpgpu_sim_config &config,
     // Instruction cache stats
     wrapper->set_icache_power(power_stats->get_inst_c_hits(0),
                               power_stats->get_inst_c_misses(0));
+    // Lyhong_TODO:
+    // wrapper->set_Per_icache_power(
+    //     power_stats->Per_get_inst_c_hits(0), ????
+    //     power_stats->Per_get_inst_c_misses(0)); ????
 
     // Constant Cache, shared memory, texture cache
     wrapper->set_ccache_power(

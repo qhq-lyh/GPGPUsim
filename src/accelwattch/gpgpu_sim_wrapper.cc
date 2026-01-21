@@ -362,6 +362,18 @@ void gpgpu_sim_wrapper::set_icache_power(double hits, double misses) {
   sample_perf_counters[IC_H] = hits;
   sample_perf_counters[IC_M] = misses;
 }
+void gpgpu_sim_wrapper::set_Per_icache_power(const std::vector<double> &Per_hits,
+                                            const std::vector<double> &Per_misses) {
+  for (unsigned i = 0; i < num_cores; i++) {
+    p->sys.core[i].icache.read_accesses =
+        Per_hits[i] * p->sys.scaling_coefficients[IC_H] +
+        Per_misses[i] * p->sys.scaling_coefficients[IC_M];
+    p->sys.core[i].icache.read_misses =
+        Per_misses[i] * p->sys.scaling_coefficients[IC_M];
+    sample_Per_perf_counters[i][IC_H] = Per_hits[i];
+    sample_Per_perf_counters[i][IC_M] = Per_misses[i];
+  }
+}
 
 void gpgpu_sim_wrapper::set_ccache_power(double hits, double misses) {
   p->sys.core[0].ccache.read_accesses =
