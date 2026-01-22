@@ -1365,9 +1365,33 @@ class power_stat_t {
                  num_request_status));
     }
   }
+  double Per_get_l1d_read_accesses(bool aggregate_stat) {
+    enum mem_access_type access_type[] = {GLOBAL_ACC_R, LOCAL_ACC_R};
+    enum cache_request_status request_status[] = {HIT, MISS, SECTOR_MISS};
+    unsigned num_access_type =
+        sizeof(access_type) / sizeof(enum mem_access_type);
+    unsigned num_request_status =
+        sizeof(request_status) / sizeof(enum cache_request_status);
+
+    if (aggregate_stat) {
+      return (pwr_mem_stat->core_cache_stats[CURRENT_STAT_IDX].get_stats(
+          access_type, num_access_type, request_status, num_request_status) / m_config->num_shader());
+    } else {
+      return ((pwr_mem_stat->core_cache_stats[CURRENT_STAT_IDX].get_stats(
+                 access_type, num_access_type, request_status,
+                 num_request_status)) -
+             (pwr_mem_stat->core_cache_stats[PREV_STAT_IDX].get_stats(
+                 access_type, num_access_type, request_status,
+                 num_request_status))) / m_config->num_shader();
+    }
+  }
   double get_l1d_read_misses(bool aggregate_stat) {
     return (get_l1d_read_accesses(aggregate_stat) -
             get_l1d_read_hits(aggregate_stat));
+  }
+  double Per_get_l1d_read_misses(bool aggregate_stat) {
+    return (Per_get_l1d_read_accesses(aggregate_stat) -
+            Per_get_l1d_read_hits(aggregate_stat));
   }
   double get_l1d_read_hits(bool aggregate_stat) {
     enum mem_access_type access_type[] = {GLOBAL_ACC_R, LOCAL_ACC_R};
@@ -1387,6 +1411,26 @@ class power_stat_t {
              (pwr_mem_stat->core_cache_stats[PREV_STAT_IDX].get_stats(
                  access_type, num_access_type, request_status,
                  num_request_status));
+    }
+  }
+  double Per_get_l1d_read_hits(bool aggregate_stat) {
+    enum mem_access_type access_type[] = {GLOBAL_ACC_R, LOCAL_ACC_R};
+    enum cache_request_status request_status[] = {HIT, MSHR_HIT};
+    unsigned num_access_type =
+        sizeof(access_type) / sizeof(enum mem_access_type);
+    unsigned num_request_status =
+        sizeof(request_status) / sizeof(enum cache_request_status);
+
+    if (aggregate_stat) {
+      return ((pwr_mem_stat->core_cache_stats[CURRENT_STAT_IDX].get_stats(
+          access_type, num_access_type, request_status, num_request_status))) / m_config->num_shader();
+    } else {
+      return ((pwr_mem_stat->core_cache_stats[CURRENT_STAT_IDX].get_stats(
+                 access_type, num_access_type, request_status,
+                 num_request_status)) -
+             (pwr_mem_stat->core_cache_stats[PREV_STAT_IDX].get_stats(
+                 access_type, num_access_type, request_status,
+                 num_request_status))) / m_config->num_shader();
     }
   }
   double get_l1d_write_accesses(bool aggregate_stat) {
@@ -1409,9 +1453,33 @@ class power_stat_t {
                  num_request_status));
     }
   }
+  double Per_get_l1d_write_accesses(bool aggregate_stat) {
+    enum mem_access_type access_type[] = {GLOBAL_ACC_W, LOCAL_ACC_W};
+    enum cache_request_status request_status[] = {HIT, MISS, SECTOR_MISS};
+    unsigned num_access_type =
+        sizeof(access_type) / sizeof(enum mem_access_type);
+    unsigned num_request_status =
+        sizeof(request_status) / sizeof(enum cache_request_status);
+
+    if (aggregate_stat) {
+      return (pwr_mem_stat->core_cache_stats[CURRENT_STAT_IDX].get_stats(
+          access_type, num_access_type, request_status, num_request_status) / m_config->num_shader());
+    } else {
+      return ((pwr_mem_stat->core_cache_stats[CURRENT_STAT_IDX].get_stats(
+                 access_type, num_access_type, request_status,
+                 num_request_status)) -
+             (pwr_mem_stat->core_cache_stats[PREV_STAT_IDX].get_stats(
+                 access_type, num_access_type, request_status,
+                 num_request_status))) / m_config->num_shader();
+    }
+  }
   double get_l1d_write_misses(bool aggregate_stat) {
     return (get_l1d_write_accesses(aggregate_stat) -
             get_l1d_write_hits(aggregate_stat));
+  }
+  double Per_get_l1d_write_misses(bool aggregate_stat) {
+    return (Per_get_l1d_write_accesses(aggregate_stat) -
+            Per_get_l1d_write_hits(aggregate_stat));
   }
   double get_l1d_write_hits(bool aggregate_stat) {
     enum mem_access_type access_type[] = {GLOBAL_ACC_W, LOCAL_ACC_W};
@@ -1431,6 +1499,26 @@ class power_stat_t {
              (pwr_mem_stat->core_cache_stats[PREV_STAT_IDX].get_stats(
                  access_type, num_access_type, request_status,
                  num_request_status));
+    }
+  }
+  double Per_get_l1d_write_hits(bool aggregate_stat) {
+    enum mem_access_type access_type[] = {GLOBAL_ACC_W, LOCAL_ACC_W};
+    enum cache_request_status request_status[] = {HIT, MSHR_HIT};
+    unsigned num_access_type =
+        sizeof(access_type) / sizeof(enum mem_access_type);
+    unsigned num_request_status =
+        sizeof(request_status) / sizeof(enum cache_request_status);
+
+    if (aggregate_stat) {
+      return (pwr_mem_stat->core_cache_stats[CURRENT_STAT_IDX].get_stats(
+          access_type, num_access_type, request_status, num_request_status) / m_config->num_shader());
+    } else {
+      return ((pwr_mem_stat->core_cache_stats[CURRENT_STAT_IDX].get_stats(
+                 access_type, num_access_type, request_status,
+                 num_request_status)) -
+             (pwr_mem_stat->core_cache_stats[PREV_STAT_IDX].get_stats(
+                 access_type, num_access_type, request_status,
+                 num_request_status))) / m_config->num_shader();
     }
   }
   double get_cache_misses() {

@@ -135,11 +135,8 @@ class gpgpu_sim_wrapper {
   void set_Per_shrd_mem_power(const std::vector<double> &Per_accesses);
   void set_l1cache_power(double read_accesses, double read_misses,
                          double write_accesses, double write_misses);
-  void set_Per_l1cache_power(
-    const std::vector<double> &Per_read_hits,
-    const std::vector<double> &Per_read_misses,
-    const std::vector<double> &Per_write_hits,
-    const std::vector<double> &Per_write_misses);
+  void set_Per_l1cache_power(double Per_read_hits, double Per_read_misses,
+                            double Per_write_hits, double Per_write_misses);
   void set_l2cache_power(double read_accesses, double read_misses,
                          double write_accesses, double write_misses);
   void set_num_cores(double num_core);

@@ -149,12 +149,12 @@ void mcpat_cycle(const gpgpu_sim_config &config,
                                power_stats->get_l1d_read_misses(0),
                                power_stats->get_l1d_write_hits(0),
                                power_stats->get_l1d_write_misses(0));
-    //  Lyhong_TODO:
+    //  Lyhong_TODO: simply / num_shader()
     // wrapper->set_Per_l1cache_power(
-    //     power_stats->Per_get_l1d_read_hits(0), ????
-    //     power_stats->Per_get_l1d_read_misses(0), ????
-    //     power_stats->Per_get_l1d_write_hits(0), ????
-    //     power_stats->Per_get_l1d_write_misses(0)); ????
+    //     power_stats->Per_get_l1d_read_hits(0),
+    //     power_stats->Per_get_l1d_read_misses(0),
+    //     power_stats->Per_get_l1d_write_hits(0),
+    //     power_stats->Per_get_l1d_write_misses(0));
 
     wrapper->set_l2cache_power(
         power_stats->get_l2_read_hits(0), power_stats->get_l2_read_misses(0),
@@ -248,10 +248,10 @@ void mcpat_cycle(const gpgpu_sim_config &config,
     // std::vector<double> Per_avg_sp_active_lanes = power_stats->Per_get_sp_active_lanes();
     // std::vector<double> Per_avg_sfu_active_lanes = power_stats->Per_get_sfu_active_lanes();
     // for(unsigned i = 0; i < shdr_config->num_shader(); i++) {
-    //  if (Per_avg_sp_active_lanes[i] > 32.0) Per_avg_sp_active_lanes[i] = 32.0;
-    //  if (Per_avg_sfu_active_lanes[i] > 32.0) Per_avg_sfu_active_lanes[i] = 32.0;
-    //  assert(Per_avg_sp_active_lanes[i] <= 32);
-    //  assert(Per_avg_sfu_active_lanes[i] <= 32);
+    //  if (Per_avg_sp_active_lanes[i] > (32.0 / shdr_config->num_shader())) Per_avg_sp_active_lanes[i] = (32.0 / shdr_config->num_shader());
+    //  if (Per_avg_sfu_active_lanes[i] > (32.0 / shdr_config->num_shader())) Per_avg_sfu_active_lanes[i] = (32.0 / shdr_config->num_shader());
+    //  assert(Per_avg_sp_active_lanes[i] <= (32 / shdr_config->num_shader()));
+    //  assert(Per_avg_sfu_active_lanes[i] <= (32 / shdr_config->num_shader()));
     // }
     // wrapper->set_Per_active_lanes_power(Per_avg_sp_active_lanes, Per_avg_sfu_active_lanes);
 

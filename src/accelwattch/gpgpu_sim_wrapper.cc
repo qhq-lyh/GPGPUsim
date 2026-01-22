@@ -473,25 +473,25 @@ void gpgpu_sim_wrapper::set_l1cache_power(double read_hits, double read_misses,
 }
 // Lyhong_TODO: L1 cache is not distributed to each core or precisely allocated to each core. Is precision required?
 void gpgpu_sim_wrapper::set_Per_l1cache_power(
-    const std::vector<double> &Per_read_hits,
-    const std::vector<double> &Per_read_misses,
-    const std::vector<double> &Per_write_hits,
-    const std::vector<double> &Per_write_misses) {
+    double Per_read_hits,
+    double Per_read_misses,
+    double Per_write_hits,
+    double Per_write_misses) {
   for (unsigned i = 0; i < num_cores; i++) {
     p->sys.core[i].dcache.read_accesses =
-        Per_read_hits[i] * p->sys.scaling_coefficients[DC_RH] +
-        Per_read_misses[i] * p->sys.scaling_coefficients[DC_RM];
+        Per_read_hits * p->sys.scaling_coefficients[DC_RH] +
+        Per_read_misses * p->sys.scaling_coefficients[DC_RM];
     p->sys.core[i].dcache.read_misses =
-        Per_read_misses[i] * p->sys.scaling_coefficients[DC_RM];
+        Per_read_misses * p->sys.scaling_coefficients[DC_RM];
     p->sys.core[i].dcache.write_accesses =
-        Per_write_hits[i] * p->sys.scaling_coefficients[DC_WH] +
-        Per_write_misses[i] * p->sys.scaling_coefficients[DC_WM];
+        Per_write_hits * p->sys.scaling_coefficients[DC_WH] +
+        Per_write_misses * p->sys.scaling_coefficients[DC_WM];
     p->sys.core[i].dcache.write_misses =
-        Per_write_misses[i] * p->sys.scaling_coefficients[DC_WM];
-    sample_Per_perf_counters[i][DC_RH] = Per_read_hits[i];
-    sample_Per_perf_counters[i][DC_RM] = Per_read_misses[i];
-    sample_Per_perf_counters[i][DC_WH] = Per_write_hits[i];
-    sample_Per_perf_counters[i][DC_WM] = Per_write_misses[i];
+        Per_write_misses * p->sys.scaling_coefficients[DC_WM];
+    sample_Per_perf_counters[i][DC_RH] = Per_read_hits;
+    sample_Per_perf_counters[i][DC_RM] = Per_read_misses;
+    sample_Per_perf_counters[i][DC_WH] = Per_write_hits;
+    sample_Per_perf_counters[i][DC_WM] = Per_write_misses;
   }
 }
 
