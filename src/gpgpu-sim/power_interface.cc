@@ -122,10 +122,10 @@ void mcpat_cycle(const gpgpu_sim_config &config,
     // Instruction cache stats
     wrapper->set_icache_power(power_stats->get_inst_c_hits(0),
                               power_stats->get_inst_c_misses(0));
-    // Lyhong_TODO:
+    // Lyhong_TODO: simply / num_shader()
     // wrapper->set_Per_icache_power(
-    //     power_stats->Per_get_inst_c_hits(0), ????
-    //     power_stats->Per_get_inst_c_misses(0)); ????
+    //     power_stats->Per_get_inst_c_hits(0),
+    //     power_stats->Per_get_inst_c_misses(0));
 
     // Constant Cache, shared memory, texture cache
     wrapper->set_ccache_power(
@@ -137,10 +137,10 @@ void mcpat_cycle(const gpgpu_sim_config &config,
     //     power_stats->Per_get_const_accessess(0), misses);
     wrapper->set_tcache_power(power_stats->get_texture_c_hits(),
                               power_stats->get_texture_c_misses());
-    // Lyhong_TODO:
+    // Lyhong_TODO: simply / num_shader()
     // wrapper->set_Per_tcache_power(
-    //     power_stats->Per_get_texture_c_hits(), ????
-    //     power_stats->Per_get_texture_c_misses()); ????
+    //     power_stats->Per_get_texture_c_hits(), 
+    //     power_stats->Per_get_texture_c_misses()); 
     wrapper->set_shrd_mem_power(power_stats->get_shmem_access(0));
     // Lyhong_TODO: 
     // wrapper->set_Per_shrd_mem_power(power_stats->Per_get_shmem_access(0));

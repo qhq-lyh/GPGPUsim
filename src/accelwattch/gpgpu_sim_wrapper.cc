@@ -377,16 +377,16 @@ void gpgpu_sim_wrapper::set_icache_power(double hits, double misses) {
   sample_perf_counters[IC_H] = hits;
   sample_perf_counters[IC_M] = misses;
 }
-void gpgpu_sim_wrapper::set_Per_icache_power(const std::vector<double> &Per_hits,
-                                            const std::vector<double> &Per_misses) {
+void gpgpu_sim_wrapper::set_Per_icache_power(double Per_hits,
+                                            double Per_misses) {
   for (unsigned i = 0; i < num_cores; i++) {
     p->sys.core[i].icache.read_accesses =
-        Per_hits[i] * p->sys.scaling_coefficients[IC_H] +
-        Per_misses[i] * p->sys.scaling_coefficients[IC_M];
+        Per_hits * p->sys.scaling_coefficients[IC_H] +
+        Per_misses * p->sys.scaling_coefficients[IC_M];
     p->sys.core[i].icache.read_misses =
-        Per_misses[i] * p->sys.scaling_coefficients[IC_M];
-    sample_Per_perf_counters[i][IC_H] = Per_hits[i];
-    sample_Per_perf_counters[i][IC_M] = Per_misses[i];
+        Per_misses * p->sys.scaling_coefficients[IC_M];
+    sample_Per_perf_counters[i][IC_H] = Per_hits;
+    sample_Per_perf_counters[i][IC_M] = Per_misses;
   }
 }
 
@@ -425,16 +425,16 @@ void gpgpu_sim_wrapper::set_tcache_power(double hits, double misses) {
   // TODO: coalescing logic is counted as part of the caches power (this is not
   // valid for no-caches architectures)
 }
-void gpgpu_sim_wrapper::set_Per_tcache_power(const std::vector<double> &Per_hits,
-                                            const std::vector<double> &Per_misses) {
+void gpgpu_sim_wrapper::set_Per_tcache_power(double Per_hits,
+                                            double Per_misses) {
   for (unsigned i = 0; i < num_cores; i++) {
     p->sys.core[i].tcache.read_accesses =
-        Per_hits[i] * p->sys.scaling_coefficients[TC_H] +
-        Per_misses[i] * p->sys.scaling_coefficients[TC_M];
+        Per_hits * p->sys.scaling_coefficients[TC_H] +
+        Per_misses * p->sys.scaling_coefficients[TC_M];
     p->sys.core[i].tcache.read_misses =
-        Per_misses[i] * p->sys.scaling_coefficients[TC_M];
-    sample_Per_perf_counters[i][TC_H] = Per_hits[i];
-    sample_Per_perf_counters[i][TC_M] = Per_misses[i];
+        Per_misses * p->sys.scaling_coefficients[TC_M];
+    sample_Per_perf_counters[i][TC_H] = Per_hits;
+    sample_Per_perf_counters[i][TC_M] = Per_misses;
   }
 }
 

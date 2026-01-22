@@ -1213,6 +1213,21 @@ class power_stat_t {
                access_type, num_access_type, request_status,
                num_request_status));
   }
+  double Per_get_texture_c_accesses() {
+    enum mem_access_type access_type[] = {TEXTURE_ACC_R};
+    enum cache_request_status request_status[] = {HIT, MISS, HIT_RESERVED};
+    unsigned num_access_type =
+        sizeof(access_type) / sizeof(enum mem_access_type);
+    unsigned num_request_status =
+        sizeof(request_status) / sizeof(enum cache_request_status);
+
+    return ((pwr_mem_stat->core_cache_stats[CURRENT_STAT_IDX].get_stats(
+               access_type, num_access_type, request_status,
+               num_request_status)) -
+           (pwr_mem_stat->core_cache_stats[PREV_STAT_IDX].get_stats(
+               access_type, num_access_type, request_status,
+               num_request_status))) / m_config->num_shader();
+  }
   double get_texture_c_misses() {
     enum mem_access_type access_type[] = {TEXTURE_ACC_R};
     enum cache_request_status request_status[] = {MISS};
@@ -1228,8 +1243,26 @@ class power_stat_t {
                access_type, num_access_type, request_status,
                num_request_status));
   }
+  double Per_get_texture_c_misses() {
+    enum mem_access_type access_type[] = {TEXTURE_ACC_R};
+    enum cache_request_status request_status[] = {MISS};
+    unsigned num_access_type =
+        sizeof(access_type) / sizeof(enum mem_access_type);
+    unsigned num_request_status =
+        sizeof(request_status) / sizeof(enum cache_request_status);
+
+    return ((pwr_mem_stat->core_cache_stats[CURRENT_STAT_IDX].get_stats(
+               access_type, num_access_type, request_status,
+               num_request_status)) -
+           (pwr_mem_stat->core_cache_stats[PREV_STAT_IDX].get_stats(
+               access_type, num_access_type, request_status,
+               num_request_status))) / m_config->num_shader();
+  }
   double get_texture_c_hits() {
     return (get_texture_c_accesses() - get_texture_c_misses());
+  }
+  double Per_get_texture_c_hits() {
+    return (Per_get_texture_c_accesses() - Per_get_texture_c_misses());
   }
   double get_inst_c_accesses(bool aggregate_stat) {
     enum mem_access_type access_type[] = {INST_ACC_R};
@@ -1249,6 +1282,24 @@ class power_stat_t {
                  access_type, num_access_type, request_status,
                  num_request_status));
   }
+  double Per_get_inst_c_accesses(bool aggregate_stat) {
+    enum mem_access_type access_type[] = {INST_ACC_R};
+    enum cache_request_status request_status[] = {HIT, MISS, HIT_RESERVED};
+    unsigned num_access_type =
+        sizeof(access_type) / sizeof(enum mem_access_type);
+    unsigned num_request_status =
+        sizeof(request_status) / sizeof(enum cache_request_status);
+    if (aggregate_stat)
+      return ((pwr_mem_stat->core_cache_stats[CURRENT_STAT_IDX].get_stats(
+          access_type, num_access_type, request_status, num_request_status))) / m_config->num_shader();
+    else
+      return ((pwr_mem_stat->core_cache_stats[CURRENT_STAT_IDX].get_stats(
+                 access_type, num_access_type, request_status,
+                 num_request_status)) -
+             (pwr_mem_stat->core_cache_stats[PREV_STAT_IDX].get_stats(
+                 access_type, num_access_type, request_status,
+                 num_request_status))) / m_config->num_shader();
+  }
   double get_inst_c_misses(bool aggregate_stat) {
     enum mem_access_type access_type[] = {INST_ACC_R};
     enum cache_request_status request_status[] = {MISS};
@@ -1267,9 +1318,31 @@ class power_stat_t {
                  access_type, num_access_type, request_status,
                  num_request_status));
   }
+  double Per_get_inst_c_misses(bool aggregate_stat) {
+    enum mem_access_type access_type[] = {INST_ACC_R};
+    enum cache_request_status request_status[] = {MISS};
+    unsigned num_access_type =
+        sizeof(access_type) / sizeof(enum mem_access_type);
+    unsigned num_request_status =
+        sizeof(request_status) / sizeof(enum cache_request_status);
+    if (aggregate_stat)
+      return ((pwr_mem_stat->core_cache_stats[CURRENT_STAT_IDX].get_stats(
+          access_type, num_access_type, request_status, num_request_status))) / m_config->num_shader();
+    else
+      return ((pwr_mem_stat->core_cache_stats[CURRENT_STAT_IDX].get_stats(
+                 access_type, num_access_type, request_status,
+                 num_request_status)) -
+             (pwr_mem_stat->core_cache_stats[PREV_STAT_IDX].get_stats(
+                 access_type, num_access_type, request_status,
+                 num_request_status))) / m_config->num_shader();
+  }
   double get_inst_c_hits(bool aggregate_stat) {
     return (get_inst_c_accesses(aggregate_stat) -
             get_inst_c_misses(aggregate_stat));
+  }
+  double Per_get_inst_c_hits(bool aggregate_stat) {
+    return (Per_get_inst_c_accesses(aggregate_stat) -
+            Per_get_inst_c_misses(aggregate_stat));
   }
 
   double get_l1d_read_accesses(bool aggregate_stat) {
