@@ -232,7 +232,7 @@ void mcpat_cycle(const gpgpu_sim_config &config,
     //     power_stats->Per_get_ialu_accessess(0),
     //     power_stats->Per_get_tot_sfu_accessess(0));
 
-    wrapper->set_avg_active_threads(power_stats->get_active_threads(0));
+    wrapper->set_avg_active_threads(power_stats->get_active_threads(0)); // About Static Power, No need to per core?
 
     // Average active lanes for sp and sfu pipelines
     float avg_sp_active_lanes =

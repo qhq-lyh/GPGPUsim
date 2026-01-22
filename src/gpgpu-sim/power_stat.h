@@ -916,8 +916,8 @@ class power_stat_t {
     unsigned num_shader = m_config->num_shader();
     std::vector<double> inst_per_core(num_shader, 0.0);
     for (unsigned i = 0; i < m_config->num_shader(); i++) {
-      inst_per_core[i] = ((pwr_core_stat->m_active_sp_lanes[CURRENT_STAT_IDX][i]) -
-                    (pwr_core_stat->m_active_sp_lanes[PREV_STAT_IDX][i])) / m_config->gpgpu_num_sp_units;
+      inst_per_core[i] = (((pwr_core_stat->m_active_sp_lanes[CURRENT_STAT_IDX][i]) -
+                    (pwr_core_stat->m_active_sp_lanes[PREV_STAT_IDX][i])) / num_shader) / m_config->gpgpu_num_sp_units;
     }
     return inst_per_core;
   }
@@ -936,13 +936,13 @@ class power_stat_t {
     unsigned num_shader = m_config->num_shader();
     std::vector<double> inst_per_core(num_shader, 0.0);
     for (unsigned i = 0; i < m_config->num_shader(); i++) {
-      inst_per_core[i] = ((pwr_core_stat->m_active_sfu_lanes[CURRENT_STAT_IDX][i]) -
-                    (pwr_core_stat->m_active_sfu_lanes[PREV_STAT_IDX][i])) / m_config->gpgpu_num_sfu_units;
+      inst_per_core[i] = (((pwr_core_stat->m_active_sfu_lanes[CURRENT_STAT_IDX][i]) -
+                    (pwr_core_stat->m_active_sfu_lanes[PREV_STAT_IDX][i])) / num_shader) / m_config->gpgpu_num_sfu_units;
     }
     return inst_per_core;
   }
 
-  float get_active_threads(bool aggregate_stat) {
+  float get_active_threads(bool aggregate_stat) { // about Static Power, No need to per core?
     unsigned total_threads = 0;
     unsigned total_warps = 0;
     for (unsigned i = 0; i < m_config->num_shader(); i++) {
