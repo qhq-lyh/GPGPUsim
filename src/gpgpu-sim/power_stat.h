@@ -932,7 +932,7 @@ class power_stat_t {
     return (total_inst / m_config->num_shader()) /
            m_config->gpgpu_num_sfu_units;
   }
-  std::vector<float> Per_get_sfu_active_lanes() {
+  std::vector<double> Per_get_sfu_active_lanes() {
     unsigned num_shader = m_config->num_shader();
     std::vector<double> inst_per_core(num_shader, 0.0);
     for (unsigned i = 0; i < m_config->num_shader(); i++) {
