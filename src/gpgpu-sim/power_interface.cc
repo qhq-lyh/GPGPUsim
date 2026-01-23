@@ -173,6 +173,17 @@ void mcpat_cycle(const gpgpu_sim_config &config,
             ? ((*power_stats->m_average_pipeline_duty_cycle) / stat_sample_freq)
             : 0.8;
     wrapper->set_duty_cycle_power(pipeline_duty_cycle);
+    // Lyhong_TODO:
+    // std::vector<float> Per_pipeline_duty_cycle(shdr_config->num_shader(), 0.0);
+    // auto *acc = power_stats->m_Per_average_pipeline_duty_cycle;
+    // for (unsigned i = 0; i < shdr_config->num_shader(); i++) {
+    //   float value_duty = (*acc)[i] / stat_sample_freq;
+    //   Per_pipeline_duty_cycle[i] =
+    //       (value_duty) < (0.8 / shdr_config->num_shader())
+    //           ? (value_duty) 
+    //           : (0.8 / shdr_config->num_shader());
+    // }
+    // wrapper->set_Per_duty_cycle_power(Per_pipeline_duty_cycle);
 
     // Memory Controller
     wrapper->set_mem_ctrl_power(power_stats->get_dram_rd(0),

@@ -989,10 +989,11 @@ gpgpu_sim::gpgpu_sim(const gpgpu_sim_config &config, gpgpu_context *ctx)
   m_memory_stats = new memory_stats_t(m_config.num_shader(), m_shader_config,
                                       m_memory_config, this);
   average_pipeline_duty_cycle = (float *)malloc(sizeof(float));
+  Per_average_pipeline_duty_cycle.resize(m_config.num_shader(), 0.0f);
   active_sms = (float *)malloc(sizeof(float));
   m_power_stats =
       new power_stat_t(m_shader_config, average_pipeline_duty_cycle, active_sms,
-                       m_shader_stats, m_memory_config, m_memory_stats);
+                       m_shader_stats, m_memory_config, m_memory_stats, &Per_average_pipeline_duty_cycle);
 
   gpu_sim_insn = 0;
   gpu_tot_sim_insn = 0;
@@ -2086,7 +2087,9 @@ void gpgpu_sim::cycle() {
     }
     float temp = 0;
     for (unsigned i = 0; i < m_shader_config->num_shader(); i++) {
-      temp += m_shader_stats->m_pipeline_duty_cycle[i];
+      float temp_value = m_shader_stats->m_pipeline_duty_cycle[i];
+      Per_average_pipeline_duty_cycle[i] += (temp_value / m_shader_config->num_shader());
+      temp += temp_value;
     }
     temp = temp / m_shader_config->num_shader();
     *average_pipeline_duty_cycle = ((*average_pipeline_duty_cycle) + temp);

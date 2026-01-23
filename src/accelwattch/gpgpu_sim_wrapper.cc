@@ -529,6 +529,13 @@ void gpgpu_sim_wrapper::set_duty_cycle_power(double duty_cycle) {
       duty_cycle * p->sys.scaling_coefficients[PIPE_A];
   sample_perf_counters[PIPE_A] = duty_cycle;
 }
+void gpgpu_sim_wrapper::set_Per_duty_cycle_power(const std::vector<double> &Per_duty_cycle) {
+  for (unsigned i = 0; i < num_cores; i++) {
+    p->sys.core[i].pipeline_duty_cycle =
+        Per_duty_cycle[i] * p->sys.scaling_coefficients[PIPE_A];
+    sample_Per_perf_counters[i][PIPE_A] = Per_duty_cycle[i];
+  }
+}
 
 void gpgpu_sim_wrapper::set_mem_ctrl_power(double reads, double writes,
                                            double dram_precharge) {

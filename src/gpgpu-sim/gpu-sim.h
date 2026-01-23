@@ -711,6 +711,7 @@ class gpgpu_sim : public gpgpu_t {
 
   unsigned m_last_cluster_issue;
   float *average_pipeline_duty_cycle;
+  std::vector<float> Per_average_pipeline_duty_cycle;
   float *active_sms;
   // time of next rising edge
   double core_time;

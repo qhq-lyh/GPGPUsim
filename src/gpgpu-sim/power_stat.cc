@@ -478,13 +478,14 @@ power_stat_t::power_stat_t(const shader_core_config *shader_config,
                            float *average_pipeline_duty_cycle,
                            float *active_sms, shader_core_stats *shader_stats,
                            const memory_config *mem_config,
-                           memory_stats_t *memory_stats) {
+                           memory_stats_t *memory_stats, std::vector<float> *Per_average_pipeline_duty_cycle) {
   assert(shader_config->m_valid);
   assert(mem_config->m_valid);
   pwr_core_stat = new power_core_stat_t(shader_config, shader_stats);
   pwr_mem_stat = new power_mem_stat_t(mem_config, shader_config, memory_stats,
                                       shader_stats);
   m_average_pipeline_duty_cycle = average_pipeline_duty_cycle;
+  m_Per_average_pipeline_duty_cycle = Per_average_pipeline_duty_cycle;
   m_active_sms = active_sms;
   m_config = shader_config;
   m_mem_config = mem_config;

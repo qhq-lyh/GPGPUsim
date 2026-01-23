@@ -142,6 +142,7 @@ class gpgpu_sim_wrapper {
   void set_num_cores(double num_core);
   void set_idle_core_power(double num_idle_core);
   void set_duty_cycle_power(double duty_cycle);
+  void set_Per_duty_cycle_power(const std::vector<double> &Per_duty_cycle);
   void set_mem_ctrl_power(double reads, double writes, double dram_precharge);
   void set_exec_unit_power(double fpu_accesses, double ialu_accesses,
                            double sfu_accesses);

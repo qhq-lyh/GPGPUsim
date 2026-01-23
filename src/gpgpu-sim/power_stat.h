@@ -149,13 +149,17 @@ class power_stat_t {
   power_stat_t(const shader_core_config *shader_config,
                float *average_pipeline_duty_cycle, float *active_sms,
                shader_core_stats *shader_stats, const memory_config *mem_config,
-               memory_stats_t *memory_stats);
+               memory_stats_t *memory_stats, std::vector<float> *Per_average_pipeline_duty_cycle);
   void visualizer_print(gzFile visualizer_file);
   void print(FILE *fout) const;
   void save_stats() {
     pwr_core_stat->save_stats();
     pwr_mem_stat->save_stats();
     *m_average_pipeline_duty_cycle = 0;
+    if (m_Per_average_pipeline_duty_cycle) {
+      std::fill(m_Per_average_pipeline_duty_cycle->begin(),
+                m_Per_average_pipeline_duty_cycle->end(), 0.0f);
+    }
     *m_active_sms = 0;
   }
   void clear();
@@ -1766,6 +1770,7 @@ class power_stat_t {
   float *m_active_sms;
   const shader_core_config *m_config;
   const memory_config *m_mem_config;
+  std::vector<float> *m_Per_average_pipeline_duty_cycle;
 };
 
 #endif /*POWER_LATENCY_STAT_H*/
