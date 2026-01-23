@@ -35,6 +35,7 @@
 #include "gpu-sim.h"
 #include "power_stat.h"
 #include "shader.h"
+#include "../accelwattch/lyhong_config.h"
 
 #include "gpgpu_sim_wrapper.h"
 

@@ -91,202 +91,231 @@ void mcpat_cycle(const gpgpu_sim_config &config,
       wrapper->set_model_voltage(1);  // performance model needs to support
                                       // this.
     }
+    if(!Lyhong_Percore_sim) {
+      float active_sms = (*power_stats->m_active_sms) / stat_sample_freq;
+      float num_cores = shdr_config->num_shader();
+      float num_idle_core = num_cores - active_sms;
+      wrapper->set_inst_power(
+          shdr_config->gpgpu_clock_gated_lanes, stat_sample_freq,
+          stat_sample_freq, power_stats->get_total_inst(0),
+          power_stats->get_total_int_inst(0), power_stats->get_total_fp_inst(0),
+          power_stats->get_l1d_read_accesses(0),
+          power_stats->get_l1d_write_accesses(0),
+          power_stats->get_committed_inst(0));
 
-    wrapper->set_inst_power(
-        shdr_config->gpgpu_clock_gated_lanes, stat_sample_freq,
-        stat_sample_freq, power_stats->get_total_inst(0),
-        power_stats->get_total_int_inst(0), power_stats->get_total_fp_inst(0),
-        power_stats->get_l1d_read_accesses(0),
-        power_stats->get_l1d_write_accesses(0),
-        power_stats->get_committed_inst(0));
-    // Lyhong_TODO: 
-    // wrapper->set_Per_inst_power(
-    //     shdr_config->gpgpu_clock_gated_lanes, stat_sample_freq,
-    //     stat_sample_freq, power_stats->Per_get_total_inst(0),
-    //     power_stats->Per_get_total_int_inst(0),
-    //     power_stats->Per_get_total_fp_inst(0),
-    //     power_stats->Per_get_l1d_read_accesses(0), ????
-    //     power_stats->Per_get_l1d_write_accesses(0), ????
-    //     power_stats->Per_get_committed_inst(0));
+      // Single RF for both int and fp ops
+      wrapper->set_regfile_power(power_stats->get_regfile_reads(0),
+                                power_stats->get_regfile_writes(0),
+                                power_stats->get_non_regfile_operands(0));
 
-    // Single RF for both int and fp ops
-    wrapper->set_regfile_power(power_stats->get_regfile_reads(0),
-                               power_stats->get_regfile_writes(0),
-                               power_stats->get_non_regfile_operands(0));
-    // Lyhong_TODO:
-    // wrapper->set_Per_regfile_power(
-    //     power_stats->Per_get_regfile_reads(0),
-    //     power_stats->Per_get_regfile_writes(0),
-    //     power_stats->Per_get_non_regfile_operands(0));
+      // Instruction cache stats
+      wrapper->set_icache_power(power_stats->get_inst_c_hits(0),
+                                power_stats->get_inst_c_misses(0));
 
-    // Instruction cache stats
-    wrapper->set_icache_power(power_stats->get_inst_c_hits(0),
-                              power_stats->get_inst_c_misses(0));
-    // Lyhong_TODO: simply / num_shader()
-    // wrapper->set_Per_icache_power(
-    //     power_stats->Per_get_inst_c_hits(0),
-    //     power_stats->Per_get_inst_c_misses(0));
+      // Constant Cache, shared memory, texture cache
+      wrapper->set_ccache_power(
+          power_stats->get_const_accessess(0),
+          0);  // assuming all HITS in constant cache for now
+      wrapper->set_tcache_power(power_stats->get_texture_c_hits(),
+                                power_stats->get_texture_c_misses());
+      wrapper->set_shrd_mem_power(power_stats->get_shmem_access(0));
 
-    // Constant Cache, shared memory, texture cache
-    wrapper->set_ccache_power(
-        power_stats->get_const_accessess(0),
-        0);  // assuming all HITS in constant cache for now
-    // Lyhong_TODO:
-    // std::vector<double> misses(shdr_config->num_shader(), 0.0);
-    // wrapper->set_Per_ccache_power(
-    //     power_stats->Per_get_const_accessess(0), misses);
-    wrapper->set_tcache_power(power_stats->get_texture_c_hits(),
-                              power_stats->get_texture_c_misses());
-    // Lyhong_TODO: simply / num_shader()
-    // wrapper->set_Per_tcache_power(
-    //     power_stats->Per_get_texture_c_hits(), 
-    //     power_stats->Per_get_texture_c_misses()); 
-    wrapper->set_shrd_mem_power(power_stats->get_shmem_access(0));
-    // Lyhong_TODO: 
-    // wrapper->set_Per_shrd_mem_power(power_stats->Per_get_shmem_access(0));
+      wrapper->set_l1cache_power(power_stats->get_l1d_read_hits(0),
+                                power_stats->get_l1d_read_misses(0),
+                                power_stats->get_l1d_write_hits(0),
+                                power_stats->get_l1d_write_misses(0));
 
-    wrapper->set_l1cache_power(power_stats->get_l1d_read_hits(0),
-                               power_stats->get_l1d_read_misses(0),
-                               power_stats->get_l1d_write_hits(0),
-                               power_stats->get_l1d_write_misses(0));
-    //  Lyhong_TODO: simply / num_shader()
-    // wrapper->set_Per_l1cache_power(
-    //     power_stats->Per_get_l1d_read_hits(0),
-    //     power_stats->Per_get_l1d_read_misses(0),
-    //     power_stats->Per_get_l1d_write_hits(0),
-    //     power_stats->Per_get_l1d_write_misses(0));
+      wrapper->set_l2cache_power(
+          power_stats->get_l2_read_hits(0), power_stats->get_l2_read_misses(0),
+          power_stats->get_l2_write_hits(0), power_stats->get_l2_write_misses(0));
 
-    wrapper->set_l2cache_power(
-        power_stats->get_l2_read_hits(0), power_stats->get_l2_read_misses(0),
-        power_stats->get_l2_write_hits(0), power_stats->get_l2_write_misses(0));
+      wrapper->set_num_cores(num_cores);
+      wrapper->set_idle_core_power(num_idle_core);
 
-    float active_sms = (*power_stats->m_active_sms) / stat_sample_freq;
-    float num_cores = shdr_config->num_shader();
-    float num_idle_core = num_cores - active_sms;
-    wrapper->set_num_cores(num_cores);
-    wrapper->set_idle_core_power(num_idle_core);
+      // pipeline power - pipeline_duty_cycle *= percent_active_sms;
+      float pipeline_duty_cycle =
+          ((*power_stats->m_average_pipeline_duty_cycle / (stat_sample_freq)) <
+          0.8)
+              ? ((*power_stats->m_average_pipeline_duty_cycle) / stat_sample_freq)
+              : 0.8;
+      wrapper->set_duty_cycle_power(pipeline_duty_cycle);
 
-    // pipeline power - pipeline_duty_cycle *= percent_active_sms;
-    float pipeline_duty_cycle =
-        ((*power_stats->m_average_pipeline_duty_cycle / (stat_sample_freq)) <
-         0.8)
-            ? ((*power_stats->m_average_pipeline_duty_cycle) / stat_sample_freq)
-            : 0.8;
-    wrapper->set_duty_cycle_power(pipeline_duty_cycle);
-    // Lyhong_TODO:
-    // std::vector<float> Per_pipeline_duty_cycle(shdr_config->num_shader(), 0.0);
-    // auto *acc = power_stats->m_Per_average_pipeline_duty_cycle;
-    // for (unsigned i = 0; i < shdr_config->num_shader(); i++) {
-    //   float value_duty = (*acc)[i] / stat_sample_freq;
-    //   Per_pipeline_duty_cycle[i] =
-    //       (value_duty) < (0.8 / shdr_config->num_shader())
-    //           ? (value_duty) 
-    //           : (0.8 / shdr_config->num_shader());
-    // }
-    // wrapper->set_Per_duty_cycle_power(Per_pipeline_duty_cycle);
+      // Memory Controller
+      wrapper->set_mem_ctrl_power(power_stats->get_dram_rd(0),
+                                  power_stats->get_dram_wr(0),
+                                  power_stats->get_dram_pre(0));
 
-    // Memory Controller
-    wrapper->set_mem_ctrl_power(power_stats->get_dram_rd(0),
-                                power_stats->get_dram_wr(0),
-                                power_stats->get_dram_pre(0));
+      // Execution pipeline accesses
+      // FPU (SP) accesses, Integer ALU (not present in Tesla), Sfu accesses
 
-    // Execution pipeline accesses
-    // FPU (SP) accesses, Integer ALU (not present in Tesla), Sfu accesses
+      wrapper->set_int_accesses(power_stats->get_ialu_accessess(0),
+                                power_stats->get_intmul24_accessess(0),
+                                power_stats->get_intmul32_accessess(0),
+                                power_stats->get_intmul_accessess(0),
+                                power_stats->get_intdiv_accessess(0));
 
-    wrapper->set_int_accesses(power_stats->get_ialu_accessess(0),
-                              power_stats->get_intmul24_accessess(0),
-                              power_stats->get_intmul32_accessess(0),
-                              power_stats->get_intmul_accessess(0),
-                              power_stats->get_intdiv_accessess(0));
+      wrapper->set_dp_accesses(power_stats->get_dp_accessess(0),
+                              power_stats->get_dpmul_accessess(0),
+                              power_stats->get_dpdiv_accessess(0));
 
-    wrapper->set_Per_int_accesses(power_stats->Per_get_intmul24_accessess(0),
-                                  power_stats->Per_get_intmul32_accessess(0),
-                                  power_stats->Per_get_intdiv_accessess(0),
-                                  power_stats->Per_get_intmul_accessess(0));
+      wrapper->set_fp_accesses(power_stats->get_fp_accessess(0),
+                              power_stats->get_fpmul_accessess(0),
+                              power_stats->get_fpdiv_accessess(0));
 
-    wrapper->set_dp_accesses(power_stats->get_dp_accessess(0),
-                             power_stats->get_dpmul_accessess(0),
-                             power_stats->get_dpdiv_accessess(0));
+      wrapper->set_trans_accesses(
+          power_stats->get_sqrt_accessess(0), power_stats->get_log_accessess(0),
+          power_stats->get_sin_accessess(0), power_stats->get_exp_accessess(0));
 
-    wrapper->set_Per_dp_accesses(power_stats->Per_get_dp_accessess(0),
-                                 power_stats->Per_get_dpmul_accessess(0),
-                                 power_stats->Per_get_dpdiv_accessess(0));
+      wrapper->set_tensor_accesses(power_stats->get_tensor_accessess(0));
 
-    wrapper->set_fp_accesses(power_stats->get_fp_accessess(0),
-                             power_stats->get_fpmul_accessess(0),
-                             power_stats->get_fpdiv_accessess(0));
+      wrapper->set_tex_accesses(power_stats->get_tex_accessess(0));
 
-    wrapper->set_Per_fp_accesses(power_stats->Per_get_fp_accessess(0),
-                                 power_stats->Per_get_fpmul_accessess(0),
-                                 power_stats->Per_get_fpdiv_accessess(0));
+      wrapper->set_exec_unit_power(power_stats->get_tot_fpu_accessess(0),
+                                  power_stats->get_ialu_accessess(0),
+                                  power_stats->get_tot_sfu_accessess(0));
 
-    wrapper->set_trans_accesses(
-        power_stats->get_sqrt_accessess(0), power_stats->get_log_accessess(0),
-        power_stats->get_sin_accessess(0), power_stats->get_exp_accessess(0));
+      wrapper->set_avg_active_threads(power_stats->get_active_threads(0)); // About Static Power, No need to per core?
 
-    wrapper->set_Per_trans_accesses(power_stats->Per_get_sqrt_accessess(0),power_stats->Per_get_log_accessess(0),
-                                    power_stats->Per_get_sin_accessess(0),power_stats->Per_get_exp_accessess(0));
+      // Average active lanes for sp and sfu pipelines
+      float avg_sp_active_lanes =
+          (power_stats->get_sp_active_lanes()) / stat_sample_freq;
+      float avg_sfu_active_lanes =
+          (power_stats->get_sfu_active_lanes()) / stat_sample_freq;
+      if (avg_sp_active_lanes > 32.0) avg_sp_active_lanes = 32.0;
+      if (avg_sfu_active_lanes > 32.0) avg_sfu_active_lanes = 32.0;
+      assert(avg_sp_active_lanes <= 32);
+      assert(avg_sfu_active_lanes <= 32);
+      wrapper->set_active_lanes_power(avg_sp_active_lanes, avg_sfu_active_lanes);
 
-    wrapper->set_tensor_accesses(power_stats->get_tensor_accessess(0));
+      double n_icnt_simt_to_mem = (double)power_stats->get_icnt_simt_to_mem(
+          0);  // # flits from SIMT clusters
+              // to memory partitions
+      double n_icnt_mem_to_simt = (double)power_stats->get_icnt_mem_to_simt(
+          0);  // # flits from memory
+              // partitions to SIMT clusters
+      wrapper->set_NoC_power(
+          n_icnt_mem_to_simt +
+          n_icnt_simt_to_mem);  // Number of flits traversing the interconnect
 
-    wrapper->set_tex_accesses(power_stats->get_tex_accessess(0));
+      wrapper->compute();
 
-    wrapper->set_Per_tensor_tex_accesses(power_stats->Per_get_tensor_accessess(0),
-                                         power_stats->Per_get_tex_accessess(0));
+      wrapper->update_components_power();
+      wrapper->print_trace_files();
+      power_stats->save_stats();
 
-    wrapper->set_exec_unit_power(power_stats->get_tot_fpu_accessess(0),
-                                 power_stats->get_ialu_accessess(0),
-                                 power_stats->get_tot_sfu_accessess(0));
-    // Lyhong_TODO:
-    // wrapper->set_Per_exec_unit_power(
-    //     power_stats->Per_get_tot_fpu_accessess(0),
-    //     power_stats->Per_get_ialu_accessess(0),
-    //     power_stats->Per_get_tot_sfu_accessess(0));
+      wrapper->detect_print_steady_state(0, tot_inst + inst);
 
-    wrapper->set_avg_active_threads(power_stats->get_active_threads(0)); // About Static Power, No need to per core?
+      wrapper->power_metrics_calculations();
 
-    // Average active lanes for sp and sfu pipelines
-    float avg_sp_active_lanes =
-        (power_stats->get_sp_active_lanes()) / stat_sample_freq;
-    float avg_sfu_active_lanes =
-        (power_stats->get_sfu_active_lanes()) / stat_sample_freq;
-    if (avg_sp_active_lanes > 32.0) avg_sp_active_lanes = 32.0;
-    if (avg_sfu_active_lanes > 32.0) avg_sfu_active_lanes = 32.0;
-    assert(avg_sp_active_lanes <= 32);
-    assert(avg_sfu_active_lanes <= 32);
-    wrapper->set_active_lanes_power(avg_sp_active_lanes, avg_sfu_active_lanes);
-    // Lyhong_TODO:
-    // std::vector<double> Per_avg_sp_active_lanes = power_stats->Per_get_sp_active_lanes();
-    // std::vector<double> Per_avg_sfu_active_lanes = power_stats->Per_get_sfu_active_lanes();
-    // for(unsigned i = 0; i < shdr_config->num_shader(); i++) {
-    //  if (Per_avg_sp_active_lanes[i] > (32.0 / shdr_config->num_shader())) Per_avg_sp_active_lanes[i] = (32.0 / shdr_config->num_shader());
-    //  if (Per_avg_sfu_active_lanes[i] > (32.0 / shdr_config->num_shader())) Per_avg_sfu_active_lanes[i] = (32.0 / shdr_config->num_shader());
-    //  assert(Per_avg_sp_active_lanes[i] <= (32 / shdr_config->num_shader()));
-    //  assert(Per_avg_sfu_active_lanes[i] <= (32 / shdr_config->num_shader()));
-    // }
-    // wrapper->set_Per_active_lanes_power(Per_avg_sp_active_lanes, Per_avg_sfu_active_lanes);
+      wrapper->dump();
+    } else {
+      float active_sms = (*power_stats->m_active_sms) / stat_sample_freq;
+      float num_cores = shdr_config->num_shader();
+      float num_idle_core = num_cores - active_sms;
+      wrapper->set_Per_inst_power(
+          shdr_config->gpgpu_clock_gated_lanes, stat_sample_freq,
+          stat_sample_freq, power_stats->Per_get_total_inst(0),
+          power_stats->Per_get_total_int_inst(0),
+          power_stats->Per_get_total_fp_inst(0),
+          power_stats->Per_get_l1d_read_accesses(0),
+          power_stats->Per_get_l1d_write_accesses(0),
+          power_stats->Per_get_committed_inst(0));
+      wrapper->set_Per_regfile_power(
+          power_stats->Per_get_regfile_reads(0),
+          power_stats->Per_get_regfile_writes(0),
+          power_stats->Per_get_non_regfile_operands(0));
+      wrapper->set_Per_icache_power(
+          power_stats->Per_get_inst_c_hits(0),
+          power_stats->Per_get_inst_c_misses(0));        // Lyhong_TODO: simply / num_shader()
+      std::vector<double> misses(shdr_config->num_shader(), 0.0);
+      wrapper->set_Per_ccache_power(
+          power_stats->Per_get_const_accessess(0), misses);
+      wrapper->set_Per_tcache_power(
+          power_stats->Per_get_texture_c_hits(), 
+          power_stats->Per_get_texture_c_misses());      // Lyhong_TODO: simply / num_shader()
+      wrapper->set_Per_shrd_mem_power(power_stats->Per_get_shmem_access(0));
+      wrapper->set_Per_l1cache_power(
+          power_stats->Per_get_l1d_read_hits(0),
+          power_stats->Per_get_l1d_read_misses(0),
+          power_stats->Per_get_l1d_write_hits(0),
+          power_stats->Per_get_l1d_write_misses(0));    //  Lyhong_TODO: simply / num_shader()
+      wrapper->set_l2cache_power(
+          power_stats->get_l2_read_hits(0), power_stats->get_l2_read_misses(0),
+          power_stats->get_l2_write_hits(0), power_stats->get_l2_write_misses(0));
 
-    double n_icnt_simt_to_mem = (double)power_stats->get_icnt_simt_to_mem(
-        0);  // # flits from SIMT clusters
-             // to memory partitions
-    double n_icnt_mem_to_simt = (double)power_stats->get_icnt_mem_to_simt(
-        0);  // # flits from memory
-             // partitions to SIMT clusters
-    wrapper->set_NoC_power(
-        n_icnt_mem_to_simt +
-        n_icnt_simt_to_mem);  // Number of flits traversing the interconnect
+      wrapper->set_num_cores(num_cores);
+      wrapper->set_idle_core_power(num_idle_core);
 
-    wrapper->compute();
+      // Lyhong_TODO: This constant may not need to be divided by num_core
+      std::vector<float> Per_pipeline_duty_cycle(shdr_config->num_shader(), 0.0);
+      auto *acc = power_stats->m_Per_average_pipeline_duty_cycle;
+      for (unsigned i = 0; i < shdr_config->num_shader(); i++) {
+        float value_duty = (*acc)[i] / stat_sample_freq;
+        Per_pipeline_duty_cycle[i] =
+            (value_duty) < (0.8 / shdr_config->num_shader())
+                ? (value_duty) 
+                : (0.8 / shdr_config->num_shader());
+      }
+      wrapper->set_Per_duty_cycle_power(Per_pipeline_duty_cycle);
 
-    wrapper->update_components_power();
-    wrapper->print_trace_files();
-    power_stats->save_stats();
+      // Memory Controller
+      wrapper->set_mem_ctrl_power(power_stats->get_dram_rd(0),
+                                  power_stats->get_dram_wr(0),
+                                  power_stats->get_dram_pre(0));
 
-    wrapper->detect_print_steady_state(0, tot_inst + inst);
+      wrapper->set_Per_int_accesses(power_stats->Per_get_intmul24_accessess(0),
+                                    power_stats->Per_get_intmul32_accessess(0),
+                                    power_stats->Per_get_intdiv_accessess(0),
+                                    power_stats->Per_get_intmul_accessess(0));
+      wrapper->set_Per_dp_accesses(power_stats->Per_get_dp_accessess(0),
+                                  power_stats->Per_get_dpmul_accessess(0),
+                                  power_stats->Per_get_dpdiv_accessess(0));
+      wrapper->set_Per_fp_accesses(power_stats->Per_get_fp_accessess(0),
+                                  power_stats->Per_get_fpmul_accessess(0),
+                                  power_stats->Per_get_fpdiv_accessess(0));
+      wrapper->set_Per_trans_accesses(power_stats->Per_get_sqrt_accessess(0),power_stats->Per_get_log_accessess(0),
+                                      power_stats->Per_get_sin_accessess(0),power_stats->Per_get_exp_accessess(0));
+      wrapper->set_Per_tensor_tex_accesses(power_stats->Per_get_tensor_accessess(0),
+                                          power_stats->Per_get_tex_accessess(0));
 
-    wrapper->power_metrics_calculations();
+      wrapper->set_Per_exec_unit_power(
+          power_stats->Per_get_tot_fpu_accessess(0),
+          power_stats->Per_get_ialu_accessess(0),
+          power_stats->Per_get_tot_sfu_accessess(0));
+      
+      // Lyhong_TODO: This constant may not need to be divided by num_core
+      std::vector<double> Per_avg_sp_active_lanes = power_stats->Per_get_sp_active_lanes();
+      std::vector<double> Per_avg_sfu_active_lanes = power_stats->Per_get_sfu_active_lanes();
+      for(unsigned i = 0; i < shdr_config->num_shader(); i++) {
+       if (Per_avg_sp_active_lanes[i] > (32.0 / shdr_config->num_shader())) Per_avg_sp_active_lanes[i] = (32.0 / shdr_config->num_shader());
+       if (Per_avg_sfu_active_lanes[i] > (32.0 / shdr_config->num_shader())) Per_avg_sfu_active_lanes[i] = (32.0 / shdr_config->num_shader());
+       assert(Per_avg_sp_active_lanes[i] <= (32 / shdr_config->num_shader()));
+       assert(Per_avg_sfu_active_lanes[i] <= (32 / shdr_config->num_shader()));
+      }
+      wrapper->set_Per_active_lanes_power(Per_avg_sp_active_lanes, Per_avg_sfu_active_lanes);
 
-    wrapper->dump();
+      double n_icnt_simt_to_mem = (double)power_stats->get_icnt_simt_to_mem(
+          0);  // # flits from SIMT clusters
+              // to memory partitions
+      double n_icnt_mem_to_simt = (double)power_stats->get_icnt_mem_to_simt(
+          0);  // # flits from memory
+              // partitions to SIMT clusters
+      wrapper->set_NoC_power(
+          n_icnt_mem_to_simt +
+          n_icnt_simt_to_mem);  // Number of flits traversing the interconnect
+      
+      wrapper->compute();
+
+      wrapper->update_components_power();
+      wrapper->print_trace_files();
+      power_stats->save_stats();
+
+      wrapper->detect_print_steady_state(0, tot_inst + inst);
+
+      wrapper->power_metrics_calculations();
+
+      wrapper->dump();
+    }
   }
   // wrapper->close_files();
 }
