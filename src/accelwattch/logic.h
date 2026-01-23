@@ -52,6 +52,7 @@
 #include "cacti/decoder.h"
 #include "cacti/parameter.h"
 #include "xmlParser.h"
+#include "lyhong_config.h"
 
 using namespace std;
 

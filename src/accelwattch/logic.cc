@@ -899,18 +899,31 @@ void FunctionalUnit::computeEnergy(bool is_tdp) {
     rt_power.writeOp.dynamic *= sckRation;
     rt_power.searchOp.dynamic *= sckRation;
     // cout<<"Power: "<<rt_power.readOp.dynamic<<endl;
-    if (fu_type == FPU) {
-      rt_power.readOp.dynamic +=
-          base_energy * executionTime *
-          (32 - XML->sys.core[ithCore].sp_average_active_lanes);
-    }
-    if (fu_type == MUL) {
-      if (XML->sys.core[ithCore].sfu_average_active_lanes >= 1)
+    if(!Lyhong_Percore_sim) {
+      if (fu_type == FPU) {
         rt_power.readOp.dynamic +=
             base_energy * executionTime *
-            (32 - XML->sys.core[ithCore].sfu_average_active_lanes);
+            (32 - XML->sys.core[ithCore].sp_average_active_lanes);
+      }
+      if (fu_type == MUL) {
+        if (XML->sys.core[ithCore].sfu_average_active_lanes >= 1)
+          rt_power.readOp.dynamic +=
+              base_energy * executionTime *
+              (32 - XML->sys.core[ithCore].sfu_average_active_lanes);
+      }
+    } else {
+      if (fu_type == FPU) {
+        rt_power.readOp.dynamic +=
+            base_energy * executionTime *
+            (32 / Sim_Num_core - XML->sys.core[ithCore].sp_average_active_lanes);
+      }
+      if (fu_type == MUL) {
+        if (XML->sys.core[ithCore].sfu_average_active_lanes >= 1)
+          rt_power.readOp.dynamic +=
+              base_energy * executionTime *
+              (32 / Sim_Num_core - XML->sys.core[ithCore].sfu_average_active_lanes);
+      }
     }
-
   } /* else */
 }
 
