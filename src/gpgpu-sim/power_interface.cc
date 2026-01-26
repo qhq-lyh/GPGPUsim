@@ -247,10 +247,10 @@ void mcpat_cycle(const gpgpu_sim_config &config,
       wrapper->set_idle_core_power(num_idle_core);
 
       // Lyhong_TODO: This constant may not need to be divided by num_core
-      std::vector<float> Per_pipeline_duty_cycle(shdr_config->num_shader(), 0.0);
+      std::vector<double> Per_pipeline_duty_cycle(shdr_config->num_shader(), 0.0);
       auto *acc = power_stats->m_Per_average_pipeline_duty_cycle;
       for (unsigned i = 0; i < shdr_config->num_shader(); i++) {
-        float value_duty = (*acc)[i] / stat_sample_freq;
+        double value_duty = (*acc)[i] / stat_sample_freq;
         Per_pipeline_duty_cycle[i] =
             (value_duty) < (0.8 / shdr_config->num_shader())
                 ? (value_duty) 

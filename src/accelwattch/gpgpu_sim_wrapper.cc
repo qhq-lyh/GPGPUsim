@@ -318,7 +318,7 @@ void gpgpu_sim_wrapper::set_inst_power(bool clk_gated_lanes, double tot_cycles,
 void gpgpu_sim_wrapper::set_Per_inst_power(bool clk_gated_lanes, double tot_cycles,
                                           double busy_cycles, const std::vector<double> &Per_tot_inst,
                                           const std::vector<double> &Per_int_inst, const std::vector<double> &Per_fp_inst,
-                                          const std::vector<double> &Per_load_inst, const std::vector<double> &Per_store_inst,
+                                          double Per_load_inst, double Per_store_inst,
                                           const std::vector<double> &Per_committed_inst) {
   for (unsigned i = 0; i < num_cores; i++) {
     p->sys.core[i].gpgpu_clock_gated_lanes = clk_gated_lanes;
@@ -335,8 +335,8 @@ void gpgpu_sim_wrapper::set_Per_inst_power(bool clk_gated_lanes, double tot_cycl
     sample_Per_perf_counters[i][TOT_INST] = Per_tot_inst[i];
 
     // L1 cache is not distributed to each core or precisely allocated to each core. Is precision required?
-    p->sys.core[i].load_instructions  = Per_load_inst[i];
-    p->sys.core[i].store_instructions = Per_store_inst[i];
+    p->sys.core[i].load_instructions  = Per_load_inst;
+    p->sys.core[i].store_instructions = Per_store_inst;
   }
 }
 

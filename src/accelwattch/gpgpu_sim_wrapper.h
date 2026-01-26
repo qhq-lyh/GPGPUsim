@@ -120,8 +120,8 @@ class gpgpu_sim_wrapper {
                           double busy_cycles, const std::vector<double> &Per_tot_inst,
                           const std::vector<double> &Per_int_inst,
                           const std::vector<double> &Per_fp_inst,
-                          const std::vector<double> &Per_Per_load_inst,
-                          const std::vector<double> &Per_Per_store_inst,
+                          double Per_load_inst,
+                          double Per_store_inst,
                           const std::vector<double> &Per_committed_inst);
   void set_regfile_power(double reads, double writes, double ops);
   void set_Per_regfile_power(const std::vector<double> &Per_reads,const std::vector<double> &Per_writes,const std::vector<double> &Per_ops);
