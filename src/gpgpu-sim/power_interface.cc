@@ -244,7 +244,7 @@ void mcpat_cycle(const gpgpu_sim_config &config,
           power_stats->get_l2_write_hits(0), power_stats->get_l2_write_misses(0));
 
       wrapper->set_num_cores(num_cores);
-      wrapper->set_idle_core_power(num_idle_core);
+      wrapper->set_idle_core_power(lyhong_active_sm[i]);
 
       // Lyhong_TODO: This constant may not need to be divided by num_core
       std::vector<double> Per_pipeline_duty_cycle(shdr_config->num_shader(), 0.0);

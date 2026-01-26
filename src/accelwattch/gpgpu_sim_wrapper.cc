@@ -264,12 +264,14 @@ void gpgpu_sim_wrapper::init_mcpat(
   }
   int lyhong_flg = chmod(lyhong_filename_interface, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
   assert(lyhong_flg == 0);
-  lyhong_SM_file.open(lyhong_SM_filename_interface);
-  if(!lyhong_SM_file.is_open()) {
-    powerfile << "lyhong_SM_print: Error - could not open lyhong_SM_file. " << std::endl; 
+  if(Lyhong_Percore_sim) {
+    lyhong_SM_file.open(lyhong_SM_filename_interface);
+    if(!lyhong_SM_file.is_open()) {
+      powerfile << "lyhong_SM_print: Error - could not open lyhong_SM_file. " << std::endl; 
+    }
+    int lyhong_SM_flg = chmod(lyhong_SM_filename_interface, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    assert(lyhong_SM_flg == 0);
   }
-  int lyhong_SM_flg = chmod(lyhong_SM_filename_interface, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-  assert(lyhong_SM_flg == 0);
   sample_val = 0;
   init_inst_val = init_val;  // gpu_tot_sim_insn+gpu_sim_insn;
 }
@@ -781,80 +783,80 @@ void gpgpu_sim_wrapper::power_metrics_calculations() {
   for (unsigned i = 0; i < num_pwr_cmps; ++i) {
     lyhong_file << "gpu_" << pwr_cmp_label[i] << ": " << sample_cmp_pwr[i] << " " << std::endl;
   }
-  // sm start
-  if (!sm_header_dumped) {
+  if(Lyhong_Percore_sim) {  // sm start
+    if (!sm_header_dumped) {
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << "SM_" << i << "_INT_MULP\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << "SM_" << i << "_INT_MUL24P\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << "SM_" << i << "_INT_MUL32P\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << "SM_" << i << "_INT_DIVP\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << "SM_" << i << "_FP_DIVP\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << "SM_" << i << "_FP_SQRTP\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << "SM_" << i << "_FP_LGP\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << "SM_" << i << "_FP_SINP\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << "SM_" << i << "_DP_DIVP\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << "SM_" << i << "_TENSORP\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << "SM_" << i << "_TEXP\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << "SM_" << i << "_DPUP\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << "SM_" << i << "_DP_MULP\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << "SM_" << i << "_FP_MULP\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << "SM_" << i << "_FP_EXP\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << "SM_" << i << "_FPUP"
+                      << (i + 1 < num_cores ? "\t" : "");
+      lyhong_SM_file << std::endl;
+      sm_header_dumped = true;
+    }
     for (unsigned i = 0; i < num_cores; i++)
-      lyhong_SM_file << "SM_" << i << "_INT_MULP\t";
+      lyhong_SM_file << sample_Per_cmp_pwr[i][INT_MULP] << "\t";
     for (unsigned i = 0; i < num_cores; i++)
-      lyhong_SM_file << "SM_" << i << "_INT_MUL24P\t";
+      lyhong_SM_file << sample_Per_cmp_pwr[i][INT_MUL24P] << "\t";
     for (unsigned i = 0; i < num_cores; i++)
-      lyhong_SM_file << "SM_" << i << "_INT_MUL32P\t";
+      lyhong_SM_file << sample_Per_cmp_pwr[i][INT_MUL32P] << "\t";
     for (unsigned i = 0; i < num_cores; i++)
-      lyhong_SM_file << "SM_" << i << "_INT_DIVP\t";
+      lyhong_SM_file << sample_Per_cmp_pwr[i][INT_DIVP] << "\t";
     for (unsigned i = 0; i < num_cores; i++)
-      lyhong_SM_file << "SM_" << i << "_FP_DIVP\t";
+      lyhong_SM_file << sample_Per_cmp_pwr[i][FP_DIVP] << "\t";
     for (unsigned i = 0; i < num_cores; i++)
-      lyhong_SM_file << "SM_" << i << "_FP_SQRTP\t";
+      lyhong_SM_file << sample_Per_cmp_pwr[i][FP_SQRTP] << "\t";
     for (unsigned i = 0; i < num_cores; i++)
-      lyhong_SM_file << "SM_" << i << "_FP_LGP\t";
+      lyhong_SM_file << sample_Per_cmp_pwr[i][FP_LGP] << "\t";
     for (unsigned i = 0; i < num_cores; i++)
-      lyhong_SM_file << "SM_" << i << "_FP_SINP\t";
+      lyhong_SM_file << sample_Per_cmp_pwr[i][FP_SINP] << "\t";
     for (unsigned i = 0; i < num_cores; i++)
-      lyhong_SM_file << "SM_" << i << "_DP_DIVP\t";
+      lyhong_SM_file << sample_Per_cmp_pwr[i][DP_DIVP] << "\t";
     for (unsigned i = 0; i < num_cores; i++)
-      lyhong_SM_file << "SM_" << i << "_TENSORP\t";
+      lyhong_SM_file << sample_Per_cmp_pwr[i][TENSORP] << "\t";
     for (unsigned i = 0; i < num_cores; i++)
-      lyhong_SM_file << "SM_" << i << "_TEXP\t";
+      lyhong_SM_file << sample_Per_cmp_pwr[i][TEXP] << "\t";
     for (unsigned i = 0; i < num_cores; i++)
-      lyhong_SM_file << "SM_" << i << "_DPUP\t";
+      lyhong_SM_file << sample_Per_cmp_pwr[i][DPUP] << "\t";
     for (unsigned i = 0; i < num_cores; i++)
-      lyhong_SM_file << "SM_" << i << "_DP_MULP\t";
+      lyhong_SM_file << sample_Per_cmp_pwr[i][DP_MULP] << "\t";
     for (unsigned i = 0; i < num_cores; i++)
-      lyhong_SM_file << "SM_" << i << "_FP_MULP\t";
+      lyhong_SM_file << sample_Per_cmp_pwr[i][FP_MULP] << "\t";
     for (unsigned i = 0; i < num_cores; i++)
-      lyhong_SM_file << "SM_" << i << "_FP_EXP\t";
-    for (unsigned i = 0; i < num_cores; i++)
-      lyhong_SM_file << "SM_" << i << "_FPUP"
-                    << (i + 1 < num_cores ? "\t" : "");
+      lyhong_SM_file << sample_Per_cmp_pwr[i][FP_EXP] << "\t";
+    for (unsigned i = 0; i < num_cores; i++) {
+      lyhong_SM_file << sample_Per_cmp_pwr[i][FPUP];
+      if (i + 1 < num_cores) lyhong_SM_file << "\t";
+    }
     lyhong_SM_file << std::endl;
-    sm_header_dumped = true;
   }
-  for (unsigned i = 0; i < num_cores; i++)
-    lyhong_SM_file << sample_Per_cmp_pwr[i][INT_MULP] << "\t";
-  for (unsigned i = 0; i < num_cores; i++)
-    lyhong_SM_file << sample_Per_cmp_pwr[i][INT_MUL24P] << "\t";
-  for (unsigned i = 0; i < num_cores; i++)
-    lyhong_SM_file << sample_Per_cmp_pwr[i][INT_MUL32P] << "\t";
-  for (unsigned i = 0; i < num_cores; i++)
-    lyhong_SM_file << sample_Per_cmp_pwr[i][INT_DIVP] << "\t";
-  for (unsigned i = 0; i < num_cores; i++)
-    lyhong_SM_file << sample_Per_cmp_pwr[i][FP_DIVP] << "\t";
-  for (unsigned i = 0; i < num_cores; i++)
-    lyhong_SM_file << sample_Per_cmp_pwr[i][FP_SQRTP] << "\t";
-  for (unsigned i = 0; i < num_cores; i++)
-    lyhong_SM_file << sample_Per_cmp_pwr[i][FP_LGP] << "\t";
-  for (unsigned i = 0; i < num_cores; i++)
-    lyhong_SM_file << sample_Per_cmp_pwr[i][FP_SINP] << "\t";
-  for (unsigned i = 0; i < num_cores; i++)
-    lyhong_SM_file << sample_Per_cmp_pwr[i][DP_DIVP] << "\t";
-  for (unsigned i = 0; i < num_cores; i++)
-    lyhong_SM_file << sample_Per_cmp_pwr[i][TENSORP] << "\t";
-  for (unsigned i = 0; i < num_cores; i++)
-    lyhong_SM_file << sample_Per_cmp_pwr[i][TEXP] << "\t";
-  for (unsigned i = 0; i < num_cores; i++)
-    lyhong_SM_file << sample_Per_cmp_pwr[i][DPUP] << "\t";
-  for (unsigned i = 0; i < num_cores; i++)
-    lyhong_SM_file << sample_Per_cmp_pwr[i][DP_MULP] << "\t";
-  for (unsigned i = 0; i < num_cores; i++)
-    lyhong_SM_file << sample_Per_cmp_pwr[i][FP_MULP] << "\t";
-  for (unsigned i = 0; i < num_cores; i++)
-    lyhong_SM_file << sample_Per_cmp_pwr[i][FP_EXP] << "\t";
-  for (unsigned i = 0; i < num_cores; i++) {
-    lyhong_SM_file << sample_Per_cmp_pwr[i][FPUP];
-    if (i + 1 < num_cores) lyhong_SM_file << "\t";
-  }
-  lyhong_SM_file << std::endl;
-  // sm end
 }
 
 void gpgpu_sim_wrapper::print_trace_files() {
@@ -874,24 +876,24 @@ void gpgpu_sim_wrapper::print_trace_files() {
   close_files();
 }
 
-void gpgpu_sim_wrapper::update_coefficients() {
-  initpower_coeff[FP_INT] = proc->cores[0]->get_coefficient_fpint_insts();
+void gpgpu_sim_wrapper::update_coefficients(unsigned ithCore) {
+  initpower_coeff[FP_INT] = proc->cores[ithCore]->get_coefficient_fpint_insts();
   effpower_coeff[FP_INT] =
       initpower_coeff[FP_INT] * p->sys.scaling_coefficients[FP_INT];
 
-  initpower_coeff[TOT_INST] = proc->cores[0]->get_coefficient_tot_insts();
+  initpower_coeff[TOT_INST] = proc->cores[ithCore]->get_coefficient_tot_insts();
   effpower_coeff[TOT_INST] =
       initpower_coeff[TOT_INST] * p->sys.scaling_coefficients[TOT_INST];
 
   initpower_coeff[REG_RD] =
-      proc->cores[0]->get_coefficient_regreads_accesses() *
-      (proc->cores[0]->exu->rf_fu_clockRate / proc->cores[0]->exu->clockRate);
+      proc->cores[ithCore]->get_coefficient_regreads_accesses() *
+      (proc->cores[ithCore]->exu->rf_fu_clockRate / proc->cores[ithCore]->exu->clockRate);
   initpower_coeff[REG_WR] =
-      proc->cores[0]->get_coefficient_regwrites_accesses() *
-      (proc->cores[0]->exu->rf_fu_clockRate / proc->cores[0]->exu->clockRate);
+      proc->cores[ithCore]->get_coefficient_regwrites_accesses() *
+      (proc->cores[ithCore]->exu->rf_fu_clockRate / proc->cores[ithCore]->exu->clockRate);
   initpower_coeff[NON_REG_OPs] =
-      proc->cores[0]->get_coefficient_noregfileops_accesses() *
-      (proc->cores[0]->exu->rf_fu_clockRate / proc->cores[0]->exu->clockRate);
+      proc->cores[ithCore]->get_coefficient_noregfileops_accesses() *
+      (proc->cores[ithCore]->exu->rf_fu_clockRate / proc->cores[ithCore]->exu->clockRate);
   effpower_coeff[REG_RD] =
       initpower_coeff[REG_RD] * p->sys.scaling_coefficients[REG_RD];
   effpower_coeff[REG_WR] =
@@ -899,25 +901,25 @@ void gpgpu_sim_wrapper::update_coefficients() {
   effpower_coeff[NON_REG_OPs] =
       initpower_coeff[NON_REG_OPs] * p->sys.scaling_coefficients[NON_REG_OPs];
 
-  initpower_coeff[IC_H] = proc->cores[0]->get_coefficient_icache_hits();
-  initpower_coeff[IC_M] = proc->cores[0]->get_coefficient_icache_misses();
+  initpower_coeff[IC_H] = proc->cores[ithCore]->get_coefficient_icache_hits();
+  initpower_coeff[IC_M] = proc->cores[ithCore]->get_coefficient_icache_misses();
   effpower_coeff[IC_H] =
       initpower_coeff[IC_H] * p->sys.scaling_coefficients[IC_H];
   effpower_coeff[IC_M] =
       initpower_coeff[IC_M] * p->sys.scaling_coefficients[IC_M];
 
-  initpower_coeff[CC_H] = (proc->cores[0]->get_coefficient_ccache_readhits() +
+  initpower_coeff[CC_H] = (proc->cores[ithCore]->get_coefficient_ccache_readhits() +
                            proc->get_coefficient_readcoalescing());
-  initpower_coeff[CC_M] = (proc->cores[0]->get_coefficient_ccache_readmisses() +
+  initpower_coeff[CC_M] = (proc->cores[ithCore]->get_coefficient_ccache_readmisses() +
                            proc->get_coefficient_readcoalescing());
   effpower_coeff[CC_H] =
       initpower_coeff[CC_H] * p->sys.scaling_coefficients[CC_H];
   effpower_coeff[CC_M] =
       initpower_coeff[CC_M] * p->sys.scaling_coefficients[CC_M];
 
-  initpower_coeff[TC_H] = (proc->cores[0]->get_coefficient_tcache_readhits() +
+  initpower_coeff[TC_H] = (proc->cores[ithCore]->get_coefficient_tcache_readhits() +
                            proc->get_coefficient_readcoalescing());
-  initpower_coeff[TC_M] = (proc->cores[0]->get_coefficient_tcache_readmisses() +
+  initpower_coeff[TC_M] = (proc->cores[ithCore]->get_coefficient_tcache_readmisses() +
                            proc->get_coefficient_readcoalescing());
   effpower_coeff[TC_H] =
       initpower_coeff[TC_H] * p->sys.scaling_coefficients[TC_H];
@@ -925,19 +927,19 @@ void gpgpu_sim_wrapper::update_coefficients() {
       initpower_coeff[TC_M] * p->sys.scaling_coefficients[TC_M];
 
   initpower_coeff[SHRD_ACC] =
-      proc->cores[0]->get_coefficient_sharedmemory_readhits();
+      proc->cores[ithCore]->get_coefficient_sharedmemory_readhits();
   effpower_coeff[SHRD_ACC] =
       initpower_coeff[SHRD_ACC] * p->sys.scaling_coefficients[SHRD_ACC];
 
-  initpower_coeff[DC_RH] = (proc->cores[0]->get_coefficient_dcache_readhits() +
+  initpower_coeff[DC_RH] = (proc->cores[ithCore]->get_coefficient_dcache_readhits() +
                             proc->get_coefficient_readcoalescing());
   initpower_coeff[DC_RM] =
-      (proc->cores[0]->get_coefficient_dcache_readmisses() +
+      (proc->cores[ithCore]->get_coefficient_dcache_readmisses() +
        proc->get_coefficient_readcoalescing());
-  initpower_coeff[DC_WH] = (proc->cores[0]->get_coefficient_dcache_writehits() +
+  initpower_coeff[DC_WH] = (proc->cores[ithCore]->get_coefficient_dcache_writehits() +
                             proc->get_coefficient_writecoalescing());
   initpower_coeff[DC_WM] =
-      (proc->cores[0]->get_coefficient_dcache_writemisses() +
+      (proc->cores[ithCore]->get_coefficient_dcache_writemisses() +
        proc->get_coefficient_writecoalescing());
   effpower_coeff[DC_RH] =
       initpower_coeff[DC_RH] * p->sys.scaling_coefficients[DC_RH];
@@ -966,7 +968,7 @@ void gpgpu_sim_wrapper::update_coefficients() {
   effpower_coeff[IDLE_CORE_N] =
       initpower_coeff[IDLE_CORE_N] * p->sys.scaling_coefficients[IDLE_CORE_N];
 
-  initpower_coeff[PIPE_A] = proc->cores[0]->get_coefficient_duty_cycle();
+  initpower_coeff[PIPE_A] = proc->cores[ithCore]->get_coefficient_duty_cycle();
   effpower_coeff[PIPE_A] =
       initpower_coeff[PIPE_A] * p->sys.scaling_coefficients[PIPE_A];
 
@@ -980,12 +982,12 @@ void gpgpu_sim_wrapper::update_coefficients() {
   effpower_coeff[MEM_PRE] =
       initpower_coeff[MEM_PRE] * p->sys.scaling_coefficients[MEM_PRE];
 
-  double fp_coeff = proc->cores[0]->get_coefficient_fpu_accesses();
-  double sfu_coeff = proc->cores[0]->get_coefficient_sfu_accesses();
+  double fp_coeff = proc->cores[ithCore]->get_coefficient_fpu_accesses();
+  double sfu_coeff = proc->cores[ithCore]->get_coefficient_sfu_accesses();
 
   initpower_coeff[INT_ACC] =
-      proc->cores[0]->get_coefficient_ialu_accesses() *
-      (proc->cores[0]->exu->rf_fu_clockRate / proc->cores[0]->exu->clockRate);
+      proc->cores[ithCore]->get_coefficient_ialu_accesses() *
+      (proc->cores[ithCore]->exu->rf_fu_clockRate / proc->cores[ithCore]->exu->clockRate);
 
   if (tot_fpu_accesses != 0) {
     initpower_coeff[FP_ACC] =
@@ -1065,7 +1067,7 @@ void gpgpu_sim_wrapper::update_coefficients() {
   effpower_coeff[NOC_A] =
       initpower_coeff[NOC_A] * p->sys.scaling_coefficients[NOC_A];
 
-  // const_dynamic_power=proc->get_const_dynamic_power()/(proc->cores[0]->executionTime);
+  // const_dynamic_power=proc->get_const_dynamic_power()/(proc->cores[ithCore]->executionTime);
 
   for (unsigned i = 0; i < num_perf_counters; i++) {
     initpower_coeff[i] /= (proc->cores[0]->executionTime);
@@ -1205,88 +1207,87 @@ double gpgpu_sim_wrapper::calculate_static_power() {
 }
 
 void gpgpu_sim_wrapper::update_components_power() {
-  update_coefficients();
+  if(!Lyhong_Percore_sim) {
+    update_coefficients(0);
+    proc_power = proc->rt_power.readOp.dynamic;
+    sample_cmp_pwr[IBP] =
+        (proc->cores[0]->ifu->IB->rt_power.readOp.dynamic +
+        proc->cores[0]->ifu->IB->rt_power.writeOp.dynamic +
+        proc->cores[0]->ifu->ID_misc->rt_power.readOp.dynamic +
+        proc->cores[0]->ifu->ID_operand->rt_power.readOp.dynamic +
+        proc->cores[0]->ifu->ID_inst->rt_power.readOp.dynamic) /
+        (proc->cores[0]->executionTime);
 
-  proc_power = proc->rt_power.readOp.dynamic;
-  sample_cmp_pwr[IBP] =
-      (proc->cores[0]->ifu->IB->rt_power.readOp.dynamic +
-       proc->cores[0]->ifu->IB->rt_power.writeOp.dynamic +
-       proc->cores[0]->ifu->ID_misc->rt_power.readOp.dynamic +
-       proc->cores[0]->ifu->ID_operand->rt_power.readOp.dynamic +
-       proc->cores[0]->ifu->ID_inst->rt_power.readOp.dynamic) /
-      (proc->cores[0]->executionTime);
+    sample_cmp_pwr[ICP] = proc->cores[0]->ifu->icache.rt_power.readOp.dynamic /
+                          (proc->cores[0]->executionTime);
 
-  sample_cmp_pwr[ICP] = proc->cores[0]->ifu->icache.rt_power.readOp.dynamic /
-                        (proc->cores[0]->executionTime);
+    sample_cmp_pwr[DCP] = proc->cores[0]->lsu->dcache.rt_power.readOp.dynamic /
+                          (proc->cores[0]->executionTime);
 
-  sample_cmp_pwr[DCP] = proc->cores[0]->lsu->dcache.rt_power.readOp.dynamic /
-                        (proc->cores[0]->executionTime);
+    sample_cmp_pwr[TCP] = proc->cores[0]->lsu->tcache.rt_power.readOp.dynamic /
+                          (proc->cores[0]->executionTime);
 
-  sample_cmp_pwr[TCP] = proc->cores[0]->lsu->tcache.rt_power.readOp.dynamic /
-                        (proc->cores[0]->executionTime);
+    sample_cmp_pwr[CCP] = proc->cores[0]->lsu->ccache.rt_power.readOp.dynamic /
+                          (proc->cores[0]->executionTime);
 
-  sample_cmp_pwr[CCP] = proc->cores[0]->lsu->ccache.rt_power.readOp.dynamic /
-                        (proc->cores[0]->executionTime);
+    sample_cmp_pwr[SHRDP] =
+        proc->cores[0]->lsu->sharedmemory.rt_power.readOp.dynamic /
+        (proc->cores[0]->executionTime);
 
-  sample_cmp_pwr[SHRDP] =
-      proc->cores[0]->lsu->sharedmemory.rt_power.readOp.dynamic /
-      (proc->cores[0]->executionTime);
+    sample_cmp_pwr[RFP] =
+        (proc->cores[0]->exu->rfu->rt_power.readOp.dynamic /
+        (proc->cores[0]->executionTime)) *
+        (proc->cores[0]->exu->rf_fu_clockRate / proc->cores[0]->exu->clockRate);
 
-  sample_cmp_pwr[RFP] =
-      (proc->cores[0]->exu->rfu->rt_power.readOp.dynamic /
-       (proc->cores[0]->executionTime)) *
-      (proc->cores[0]->exu->rf_fu_clockRate / proc->cores[0]->exu->clockRate);
+    double sample_fp_pwr = (proc->cores[0]->exu->fp_u->rt_power.readOp.dynamic /
+                            (proc->cores[0]->executionTime));
 
-  double sample_fp_pwr = (proc->cores[0]->exu->fp_u->rt_power.readOp.dynamic /
-                          (proc->cores[0]->executionTime));
+    double sample_sfu_pwr = (proc->cores[0]->exu->mul->rt_power.readOp.dynamic /
+                            (proc->cores[0]->executionTime));
 
-  double sample_sfu_pwr = (proc->cores[0]->exu->mul->rt_power.readOp.dynamic /
-                           (proc->cores[0]->executionTime));
-
-  sample_cmp_pwr[INTP] =
-      (proc->cores[0]->exu->exeu->rt_power.readOp.dynamic /
-       (proc->cores[0]->executionTime)) *
-      (proc->cores[0]->exu->rf_fu_clockRate / proc->cores[0]->exu->clockRate);
-
-  if (tot_fpu_accesses != 0) {
-    sample_cmp_pwr[FPUP] =
-        sample_fp_pwr * sample_perf_counters[FP_ACC] / tot_fpu_accesses;
-    sample_cmp_pwr[DPUP] =
-        sample_fp_pwr * sample_perf_counters[DP_ACC] / tot_fpu_accesses;
-  } else {
-    sample_cmp_pwr[FPUP] = 0;
-    sample_cmp_pwr[DPUP] = 0;
-  }
-  if (tot_sfu_accesses != 0) {
-    sample_cmp_pwr[INT_MUL24P] =
-        sample_sfu_pwr * sample_perf_counters[INT_MUL24_ACC] / tot_sfu_accesses;
-    sample_cmp_pwr[INT_MUL32P] =
-        sample_sfu_pwr * sample_perf_counters[INT_MUL32_ACC] / tot_sfu_accesses;
-    sample_cmp_pwr[INT_MULP] =
-        sample_sfu_pwr * sample_perf_counters[INT_MUL_ACC] / tot_sfu_accesses;
-    sample_cmp_pwr[INT_DIVP] =
-        sample_sfu_pwr * sample_perf_counters[INT_DIV_ACC] / tot_sfu_accesses;
-    sample_cmp_pwr[FP_MULP] =
-        sample_sfu_pwr * sample_perf_counters[FP_MUL_ACC] / tot_sfu_accesses;
-    sample_cmp_pwr[FP_DIVP] =
-        sample_sfu_pwr * sample_perf_counters[FP_DIV_ACC] / tot_sfu_accesses;
-    sample_cmp_pwr[FP_SQRTP] =
-        sample_sfu_pwr * sample_perf_counters[FP_SQRT_ACC] / tot_sfu_accesses;
-    sample_cmp_pwr[FP_LGP] =
-        sample_sfu_pwr * sample_perf_counters[FP_LG_ACC] / tot_sfu_accesses;
-    sample_cmp_pwr[FP_SINP] =
-        sample_sfu_pwr * sample_perf_counters[FP_SIN_ACC] / tot_sfu_accesses;
-    sample_cmp_pwr[FP_EXP] =
-        sample_sfu_pwr * sample_perf_counters[FP_EXP_ACC] / tot_sfu_accesses;
-    sample_cmp_pwr[DP_MULP] =
-        sample_sfu_pwr * sample_perf_counters[DP_MUL_ACC] / tot_sfu_accesses;
-    sample_cmp_pwr[DP_DIVP] =
-        sample_sfu_pwr * sample_perf_counters[DP_DIV_ACC] / tot_sfu_accesses;
-    sample_cmp_pwr[TENSORP] =
-        sample_sfu_pwr * sample_perf_counters[TENSOR_ACC] / tot_sfu_accesses;
-    sample_cmp_pwr[TEXP] =
-        sample_sfu_pwr * sample_perf_counters[TEX_ACC] / tot_sfu_accesses;
-  } else {
+    sample_cmp_pwr[INTP] =
+        (proc->cores[0]->exu->exeu->rt_power.readOp.dynamic /
+        (proc->cores[0]->executionTime)) *
+        (proc->cores[0]->exu->rf_fu_clockRate / proc->cores[0]->exu->clockRate);
+    if (tot_fpu_accesses != 0) {
+      sample_cmp_pwr[FPUP] =
+          sample_fp_pwr * sample_perf_counters[FP_ACC] / tot_fpu_accesses;
+      sample_cmp_pwr[DPUP] =
+          sample_fp_pwr * sample_perf_counters[DP_ACC] / tot_fpu_accesses;
+    } else {
+      sample_cmp_pwr[FPUP] = 0;
+      sample_cmp_pwr[DPUP] = 0;
+    }
+    if (tot_sfu_accesses != 0) {
+      sample_cmp_pwr[INT_MUL24P] =
+          sample_sfu_pwr * sample_perf_counters[INT_MUL24_ACC] / tot_sfu_accesses;
+      sample_cmp_pwr[INT_MUL32P] =
+          sample_sfu_pwr * sample_perf_counters[INT_MUL32_ACC] / tot_sfu_accesses;
+      sample_cmp_pwr[INT_MULP] =
+          sample_sfu_pwr * sample_perf_counters[INT_MUL_ACC] / tot_sfu_accesses;
+      sample_cmp_pwr[INT_DIVP] =
+          sample_sfu_pwr * sample_perf_counters[INT_DIV_ACC] / tot_sfu_accesses;
+      sample_cmp_pwr[FP_MULP] =
+          sample_sfu_pwr * sample_perf_counters[FP_MUL_ACC] / tot_sfu_accesses;
+      sample_cmp_pwr[FP_DIVP] =
+          sample_sfu_pwr * sample_perf_counters[FP_DIV_ACC] / tot_sfu_accesses;
+      sample_cmp_pwr[FP_SQRTP] =
+          sample_sfu_pwr * sample_perf_counters[FP_SQRT_ACC] / tot_sfu_accesses;
+      sample_cmp_pwr[FP_LGP] =
+          sample_sfu_pwr * sample_perf_counters[FP_LG_ACC] / tot_sfu_accesses;
+      sample_cmp_pwr[FP_SINP] =
+          sample_sfu_pwr * sample_perf_counters[FP_SIN_ACC] / tot_sfu_accesses;
+      sample_cmp_pwr[FP_EXP] =
+          sample_sfu_pwr * sample_perf_counters[FP_EXP_ACC] / tot_sfu_accesses;
+      sample_cmp_pwr[DP_MULP] =
+          sample_sfu_pwr * sample_perf_counters[DP_MUL_ACC] / tot_sfu_accesses;
+      sample_cmp_pwr[DP_DIVP] =
+          sample_sfu_pwr * sample_perf_counters[DP_DIV_ACC] / tot_sfu_accesses;
+      sample_cmp_pwr[TENSORP] =
+          sample_sfu_pwr * sample_perf_counters[TENSOR_ACC] / tot_sfu_accesses;
+      sample_cmp_pwr[TEXP] =
+          sample_sfu_pwr * sample_perf_counters[TEX_ACC] / tot_sfu_accesses;
+    } else {
     sample_cmp_pwr[INT_MUL24P] = 0;
     sample_cmp_pwr[INT_MUL32P] = 0;
     sample_cmp_pwr[INT_MULP] = 0;
@@ -1302,132 +1303,242 @@ void gpgpu_sim_wrapper::update_components_power() {
     sample_cmp_pwr[TENSORP] = 0;
     sample_cmp_pwr[TEXP] = 0;
   }
-  // Per SM power
-  for (unsigned i = 0; i < num_cores; i++) {
-    if (tot_fpu_accesses != 0) {
-      sample_Per_cmp_pwr[i][FPUP] =
-        sample_fp_pwr * sample_Per_perf_counters[i][FP_ACC] / tot_fpu_accesses;
-      sample_Per_cmp_pwr[i][DPUP] =
-        sample_fp_pwr * sample_Per_perf_counters[i][DP_ACC] / tot_fpu_accesses;
-    } else {
-      sample_Per_cmp_pwr[i][FPUP] = 0;
-      sample_Per_cmp_pwr[i][DPUP] = 0;
-    }
-    if (tot_sfu_accesses != 0) {
-      sample_Per_cmp_pwr[i][INT_MUL24P] =
-        sample_sfu_pwr * sample_Per_perf_counters[i][INT_MUL24_ACC] / tot_sfu_accesses;
-      sample_Per_cmp_pwr[i][INT_MUL32P] =
-        sample_sfu_pwr * sample_Per_perf_counters[i][INT_MUL32_ACC] / tot_sfu_accesses;
-      sample_Per_cmp_pwr[i][INT_DIVP] =
-        sample_sfu_pwr * sample_Per_perf_counters[i][INT_DIV_ACC] / tot_sfu_accesses;
-      sample_Per_cmp_pwr[i][FP_MULP] =
-        sample_sfu_pwr * sample_Per_perf_counters[i][FP_MUL_ACC] / tot_sfu_accesses;
-      sample_Per_cmp_pwr[i][FP_DIVP] =
-        sample_sfu_pwr * sample_Per_perf_counters[i][FP_DIV_ACC] / tot_sfu_accesses;
-      sample_Per_cmp_pwr[i][FP_SQRTP] =
-        sample_sfu_pwr * sample_Per_perf_counters[i][FP_SQRT_ACC] / tot_sfu_accesses;
-      sample_Per_cmp_pwr[i][FP_LGP] =
-        sample_sfu_pwr * sample_Per_perf_counters[i][FP_LG_ACC] / tot_sfu_accesses;
-      sample_Per_cmp_pwr[i][FP_SINP] =
-        sample_sfu_pwr * sample_Per_perf_counters[i][FP_SIN_ACC] / tot_sfu_accesses;
-      sample_Per_cmp_pwr[i][FP_EXP] =
-        sample_sfu_pwr * sample_Per_perf_counters[i][FP_EXP_ACC] / tot_sfu_accesses;
-      sample_Per_cmp_pwr[i][DP_MULP] =
-        sample_sfu_pwr * sample_Per_perf_counters[i][DP_MUL_ACC] / tot_sfu_accesses;
-      sample_Per_cmp_pwr[i][DP_DIVP] =
-        sample_sfu_pwr * sample_Per_perf_counters[i][DP_DIV_ACC] / tot_sfu_accesses;
-      sample_Per_cmp_pwr[i][TENSORP] =
-        sample_sfu_pwr * sample_Per_perf_counters[i][TENSOR_ACC] / tot_sfu_accesses;
-      sample_Per_cmp_pwr[i][TEXP] =
-        sample_sfu_pwr * sample_Per_perf_counters[i][TEX_ACC] / tot_sfu_accesses;
-      sample_Per_cmp_pwr[i][INT_MULP] =
-        sample_sfu_pwr * sample_Per_perf_counters[i][INT_MUL_ACC] / tot_sfu_accesses;
-    } else {
-      sample_Per_cmp_pwr[i][INT_MUL24P] = 0;
-      sample_Per_cmp_pwr[i][INT_MUL32P] = 0;
-      sample_Per_cmp_pwr[i][INT_DIVP] = 0;
-      sample_Per_cmp_pwr[i][FP_MULP] = 0;
-      sample_Per_cmp_pwr[i][FP_DIVP] = 0;
-      sample_Per_cmp_pwr[i][FP_SQRTP] = 0;
-      sample_Per_cmp_pwr[i][FP_LGP] = 0;
-      sample_Per_cmp_pwr[i][FP_SINP] = 0;
-      sample_Per_cmp_pwr[i][FP_EXP] = 0;
-      sample_Per_cmp_pwr[i][DP_MULP] = 0;
-      sample_Per_cmp_pwr[i][DP_DIVP] = 0;
-      sample_Per_cmp_pwr[i][TENSORP] = 0;
-      sample_Per_cmp_pwr[i][TEXP] = 0;
-      sample_Per_cmp_pwr[i][INT_MULP] = 0;
-    }
-  }
-  sample_cmp_pwr[SCHEDP] = proc->cores[0]->exu->scheu->rt_power.readOp.dynamic /
-                           (proc->cores[0]->executionTime);
+    sample_cmp_pwr[SCHEDP] = proc->cores[0]->exu->scheu->rt_power.readOp.dynamic /
+                            (proc->cores[0]->executionTime);
 
-  sample_cmp_pwr[L2CP] = (proc->XML->sys.number_of_L2s > 0)
-                             ? proc->l2array[0]->rt_power.readOp.dynamic /
-                                   (proc->cores[0]->executionTime)
-                             : 0;
+    sample_cmp_pwr[L2CP] = (proc->XML->sys.number_of_L2s > 0)
+                              ? proc->l2array[0]->rt_power.readOp.dynamic /
+                                    (proc->cores[0]->executionTime)
+                              : 0;
 
-  sample_cmp_pwr[MCP] = (proc->mc->rt_power.readOp.dynamic -
-                         proc->mc->dram->rt_power.readOp.dynamic) /
-                        (proc->cores[0]->executionTime);
+    sample_cmp_pwr[MCP] = (proc->mc->rt_power.readOp.dynamic -
+                          proc->mc->dram->rt_power.readOp.dynamic) /
+                          (proc->cores[0]->executionTime);
 
-  sample_cmp_pwr[NOCP] =
-      proc->nocs[0]->rt_power.readOp.dynamic / (proc->cores[0]->executionTime);
+    sample_cmp_pwr[NOCP] =
+        proc->nocs[0]->rt_power.readOp.dynamic / (proc->cores[0]->executionTime);
 
-  sample_cmp_pwr[DRAMP] =
-      proc->mc->dram->rt_power.readOp.dynamic / (proc->cores[0]->executionTime);
+    sample_cmp_pwr[DRAMP] =
+        proc->mc->dram->rt_power.readOp.dynamic / (proc->cores[0]->executionTime);
 
-  sample_cmp_pwr[PIPEP] =
-      proc->cores[0]->Pipeline_energy / (proc->cores[0]->executionTime);
+    sample_cmp_pwr[PIPEP] =
+        proc->cores[0]->Pipeline_energy / (proc->cores[0]->executionTime);
 
-  sample_cmp_pwr[IDLE_COREP] =
-      proc->cores[0]->IdleCoreEnergy / (proc->cores[0]->executionTime);
+    sample_cmp_pwr[IDLE_COREP] =
+        proc->cores[0]->IdleCoreEnergy / (proc->cores[0]->executionTime);
 
-  // This constant dynamic power (e.g., clock power) part is estimated via
-  // regression model.
-  sample_cmp_pwr[CONSTP] = 0;
-  sample_cmp_pwr[STATICP] = 0;
-  // double cnst_dyn =
-  // proc->get_const_dynamic_power()/(proc->cores[0]->executionTime);
-  // // If the regression scaling term is greater than the recorded constant
-  // dynamic power
-  // // then use the difference (other portion already added to dynamic power).
-  // Else,
-  // // all the constant dynamic power is accounted for, add nothing.
-  // if(p->sys.scaling_coefficients[constant_power] > cnst_dyn)
-  //   sample_cmp_pwr[CONSTP] =
-  //   (p->sys.scaling_coefficients[constant_power]-cnst_dyn);
-  sample_cmp_pwr[CONSTP] = p->sys.scaling_coefficients[constant_power];
-  sample_cmp_pwr[STATICP] = calculate_static_power();
+    // This constant dynamic power (e.g., clock power) part is estimated via
+    // regression model.
+    sample_cmp_pwr[CONSTP] = 0;
+    sample_cmp_pwr[STATICP] = 0;
+    // double cnst_dyn =
+    // proc->get_const_dynamic_power()/(proc->cores[0]->executionTime);
+    // // If the regression scaling term is greater than the recorded constant
+    // dynamic power
+    // // then use the difference (other portion already added to dynamic power).
+    // Else,
+    // // all the constant dynamic power is accounted for, add nothing.
+    // if(p->sys.scaling_coefficients[constant_power] > cnst_dyn)
+    //   sample_cmp_pwr[CONSTP] =
+    //   (p->sys.scaling_coefficients[constant_power]-cnst_dyn);
+    sample_cmp_pwr[CONSTP] = p->sys.scaling_coefficients[constant_power];
+    sample_cmp_pwr[STATICP] = calculate_static_power();
 
-  if (g_dvfs_enabled) {
-    double voltage_ratio =
-        modeled_chip_voltage / p->sys.modeled_chip_voltage_ref;
-    sample_cmp_pwr[IDLE_COREP] *=
-        voltage_ratio;  // static power scaled by voltage_ratio
-    sample_cmp_pwr[STATICP] *=
-        voltage_ratio;  // static power scaled by voltage_ratio
-    for (unsigned i = 0; i < num_pwr_cmps; i++) {
-      if ((i != IDLE_COREP) && (i != STATICP)) {
-        sample_cmp_pwr[i] *=
-            voltage_ratio *
-            voltage_ratio;  // dynamic power scaled by square of voltage_ratio
+    if (g_dvfs_enabled) {
+      double voltage_ratio =
+          modeled_chip_voltage / p->sys.modeled_chip_voltage_ref;
+      sample_cmp_pwr[IDLE_COREP] *=
+          voltage_ratio;  // static power scaled by voltage_ratio
+      sample_cmp_pwr[STATICP] *=
+          voltage_ratio;  // static power scaled by voltage_ratio
+      for (unsigned i = 0; i < num_pwr_cmps; i++) {
+        if ((i != IDLE_COREP) && (i != STATICP)) {
+          sample_cmp_pwr[i] *=
+              voltage_ratio *
+              voltage_ratio;  // dynamic power scaled by square of voltage_ratio
+        }
       }
     }
-  }
 
-  proc_power += sample_cmp_pwr[CONSTP] + sample_cmp_pwr[STATICP];
-  if (!g_dvfs_enabled) {  // sanity check will fail when voltage scaling is
-                          // applied, fix later
-    double sum_pwr_cmp = 0;
-    for (unsigned i = 0; i < num_pwr_cmps; i++) {
-      sum_pwr_cmp += sample_cmp_pwr[i];
+    proc_power += sample_cmp_pwr[CONSTP] + sample_cmp_pwr[STATICP];
+    if (!g_dvfs_enabled) {  // sanity check will fail when voltage scaling is
+                            // applied, fix later
+      double sum_pwr_cmp = 0;
+      for (unsigned i = 0; i < num_pwr_cmps; i++) {
+        sum_pwr_cmp += sample_cmp_pwr[i];
+      }
+      bool check = false;
+      check = sanity_check(sum_pwr_cmp, proc_power);
+      if (!check)
+        printf("sum_pwr_cmp %f : proc_power %f \n", sum_pwr_cmp, proc_power);
+      assert("Total Power does not equal the sum of the components\n" && (check));
     }
-    bool check = false;
-    check = sanity_check(sum_pwr_cmp, proc_power);
-    if (!check)
-      printf("sum_pwr_cmp %f : proc_power %f \n", sum_pwr_cmp, proc_power);
-    assert("Total Power does not equal the sum of the components\n" && (check));
+  } else {  // Per SM power
+    for (unsigned i = 0; i < num_cores; i++) {
+      update_coefficients(i);
+      proc_power = proc->rt_power.readOp.dynamic;
+      sample_Per_cmp_pwr[i][IBP] =
+          (proc->cores[i]->ifu->IB->rt_power.readOp.dynamic +
+          proc->cores[i]->ifu->IB->rt_power.writeOp.dynamic +
+          proc->cores[i]->ifu->ID_misc->rt_power.readOp.dynamic +
+          proc->cores[i]->ifu->ID_operand->rt_power.readOp.dynamic +
+          proc->cores[i]->ifu->ID_inst->rt_power.readOp.dynamic) /
+          (proc->cores[0]->executionTime);
+
+      sample_Per_cmp_pwr[i][ICP] = proc->cores[i]->ifu->icache.rt_power.readOp.dynamic /
+                            (proc->cores[0]->executionTime);
+
+      sample_Per_cmp_pwr[i][DCP] = proc->cores[i]->lsu->dcache.rt_power.readOp.dynamic /
+                            (proc->cores[0]->executionTime);
+
+      sample_Per_cmp_pwr[i][TCP] = proc->cores[i]->lsu->tcache.rt_power.readOp.dynamic /
+                            (proc->cores[0]->executionTime);
+
+      sample_Per_cmp_pwr[i][CCP] = proc->cores[i]->lsu->ccache.rt_power.readOp.dynamic /
+                            (proc->cores[0]->executionTime);
+
+      sample_Per_cmp_pwr[i][SHRDP] =
+          proc->cores[i]->lsu->sharedmemory.rt_power.readOp.dynamic /
+          (proc->cores[0]->executionTime);
+
+      sample_Per_cmp_pwr[i][RFP] =
+          (proc->cores[i]->exu->rfu->rt_power.readOp.dynamic /
+          (proc->cores[0]->executionTime)) *
+          (proc->cores[i]->exu->rf_fu_clockRate / proc->cores[i]->exu->clockRate);
+
+      double sample_fp_pwr = (proc->cores[i]->exu->fp_u->rt_power.readOp.dynamic /
+                              (proc->cores[0]->executionTime));
+
+      double sample_sfu_pwr = (proc->cores[i]->exu->mul->rt_power.readOp.dynamic /
+                              (proc->cores[0]->executionTime));
+
+      sample_Per_cmp_pwr[i][INTP] =
+          (proc->cores[i]->exu->exeu->rt_power.readOp.dynamic /
+          (proc->cores[0]->executionTime)) *
+          (proc->cores[i]->exu->rf_fu_clockRate / proc->cores[i]->exu->clockRate);
+      if (tot_fpu_accesses != 0) {
+        sample_Per_cmp_pwr[i][FPUP] =
+          sample_fp_pwr * sample_Per_perf_counters[i][FP_ACC] / tot_fpu_accesses;
+        sample_Per_cmp_pwr[i][DPUP] =
+          sample_fp_pwr * sample_Per_perf_counters[i][DP_ACC] / tot_fpu_accesses;
+      } else {
+        sample_Per_cmp_pwr[i][FPUP] = 0;
+        sample_Per_cmp_pwr[i][DPUP] = 0;
+      }
+      if (tot_sfu_accesses != 0) {
+        sample_Per_cmp_pwr[i][INT_MUL24P] =
+          sample_sfu_pwr * sample_Per_perf_counters[i][INT_MUL24_ACC] / tot_sfu_accesses;
+        sample_Per_cmp_pwr[i][INT_MUL32P] =
+          sample_sfu_pwr * sample_Per_perf_counters[i][INT_MUL32_ACC] / tot_sfu_accesses;
+        sample_Per_cmp_pwr[i][INT_DIVP] =
+          sample_sfu_pwr * sample_Per_perf_counters[i][INT_DIV_ACC] / tot_sfu_accesses;
+        sample_Per_cmp_pwr[i][FP_MULP] =
+          sample_sfu_pwr * sample_Per_perf_counters[i][FP_MUL_ACC] / tot_sfu_accesses;
+        sample_Per_cmp_pwr[i][FP_DIVP] =
+          sample_sfu_pwr * sample_Per_perf_counters[i][FP_DIV_ACC] / tot_sfu_accesses;
+        sample_Per_cmp_pwr[i][FP_SQRTP] =
+          sample_sfu_pwr * sample_Per_perf_counters[i][FP_SQRT_ACC] / tot_sfu_accesses;
+        sample_Per_cmp_pwr[i][FP_LGP] =
+          sample_sfu_pwr * sample_Per_perf_counters[i][FP_LG_ACC] / tot_sfu_accesses;
+        sample_Per_cmp_pwr[i][FP_SINP] =
+          sample_sfu_pwr * sample_Per_perf_counters[i][FP_SIN_ACC] / tot_sfu_accesses;
+        sample_Per_cmp_pwr[i][FP_EXP] =
+          sample_sfu_pwr * sample_Per_perf_counters[i][FP_EXP_ACC] / tot_sfu_accesses;
+        sample_Per_cmp_pwr[i][DP_MULP] =
+          sample_sfu_pwr * sample_Per_perf_counters[i][DP_MUL_ACC] / tot_sfu_accesses;
+        sample_Per_cmp_pwr[i][DP_DIVP] =
+          sample_sfu_pwr * sample_Per_perf_counters[i][DP_DIV_ACC] / tot_sfu_accesses;
+        sample_Per_cmp_pwr[i][TENSORP] =
+          sample_sfu_pwr * sample_Per_perf_counters[i][TENSOR_ACC] / tot_sfu_accesses;
+        sample_Per_cmp_pwr[i][TEXP] =
+          sample_sfu_pwr * sample_Per_perf_counters[i][TEX_ACC] / tot_sfu_accesses;
+        sample_Per_cmp_pwr[i][INT_MULP] =
+          sample_sfu_pwr * sample_Per_perf_counters[i][INT_MUL_ACC] / tot_sfu_accesses;
+      } else {
+        sample_Per_cmp_pwr[i][INT_MUL24P] = 0;
+        sample_Per_cmp_pwr[i][INT_MUL32P] = 0;
+        sample_Per_cmp_pwr[i][INT_DIVP] = 0;
+        sample_Per_cmp_pwr[i][FP_MULP] = 0;
+        sample_Per_cmp_pwr[i][FP_DIVP] = 0;
+        sample_Per_cmp_pwr[i][FP_SQRTP] = 0;
+        sample_Per_cmp_pwr[i][FP_LGP] = 0;
+        sample_Per_cmp_pwr[i][FP_SINP] = 0;
+        sample_Per_cmp_pwr[i][FP_EXP] = 0;
+        sample_Per_cmp_pwr[i][DP_MULP] = 0;
+        sample_Per_cmp_pwr[i][DP_DIVP] = 0;
+        sample_Per_cmp_pwr[i][TENSORP] = 0;
+        sample_Per_cmp_pwr[i][TEXP] = 0;
+        sample_Per_cmp_pwr[i][INT_MULP] = 0;
+      }
+      sample_Per_cmp_pwr[i][SCHEDP] = proc->cores[i]->exu->scheu->rt_power.readOp.dynamic /
+                          (proc->cores[0]->executionTime);
+
+      sample_Per_cmp_pwr[i][IDLE_COREP] =
+          proc->cores[i]->IdleCoreEnergy / (proc->cores[0]->executionTime);
+
+      sample_Per_cmp_pwr[i][PIPEP] =
+          proc->cores[i]->Pipeline_energy / (proc->cores[0]->executionTime);
+      // This constant dynamic power (e.g., clock power) part is estimated via
+      // regression model.
+      sample_cmp_pwr[CONSTP] = 0;
+      sample_cmp_pwr[STATICP] = 0;
+      // double cnst_dyn =
+      // proc->get_const_dynamic_power()/(proc->cores[0]->executionTime);
+      // // If the regression scaling term is greater than the recorded constant
+      // dynamic power
+      // // then use the difference (other portion already added to dynamic power).
+      // Else,
+      // // all the constant dynamic power is accounted for, add nothing.
+      // if(p->sys.scaling_coefficients[constant_power] > cnst_dyn)
+      //   sample_cmp_pwr[CONSTP] =
+      //   (p->sys.scaling_coefficients[constant_power]-cnst_dyn);
+      sample_cmp_pwr[CONSTP] = p->sys.scaling_coefficients[constant_power];
+      sample_cmp_pwr[STATICP] = calculate_static_power();
+
+      if (g_dvfs_enabled) {
+        double voltage_ratio =
+            modeled_chip_voltage / p->sys.modeled_chip_voltage_ref;
+        sample_cmp_pwr[IDLE_COREP] *=
+            voltage_ratio;  // static power scaled by voltage_ratio
+        sample_cmp_pwr[STATICP] *=
+            voltage_ratio;  // static power scaled by voltage_ratio
+        for (unsigned i = 0; i < num_pwr_cmps; i++) {
+          if ((i != IDLE_COREP) && (i != STATICP)) {
+            sample_cmp_pwr[i] *=
+                voltage_ratio *
+                voltage_ratio;  // dynamic power scaled by square of voltage_ratio
+          }
+        }
+      }
+
+      proc_power += sample_cmp_pwr[CONSTP] + sample_cmp_pwr[STATICP];
+      if (!g_dvfs_enabled) {  // sanity check will fail when voltage scaling is
+                              // applied, fix later
+        double sum_pwr_cmp = 0;
+        for (unsigned i = 0; i < num_pwr_cmps; i++) {
+          sum_pwr_cmp += sample_cmp_pwr[i];
+        }
+        bool check = false;
+        check = sanity_check(sum_pwr_cmp, proc_power);
+        if (!check)
+          printf("sum_pwr_cmp %f : proc_power %f \n", sum_pwr_cmp, proc_power);
+        assert("Total Power does not equal the sum of the components\n" && (check));
+      }
+    }
+    sample_cmp_pwr[L2CP] = (proc->XML->sys.number_of_L2s > 0)
+                            ? proc->l2array[0]->rt_power.readOp.dynamic /
+                                  (proc->cores[0]->executionTime)
+                            : 0;
+
+    sample_cmp_pwr[MCP] = (proc->mc->rt_power.readOp.dynamic -
+                          proc->mc->dram->rt_power.readOp.dynamic) /
+                          (proc->cores[0]->executionTime);
+
+    sample_cmp_pwr[NOCP] =
+        proc->nocs[0]->rt_power.readOp.dynamic / (proc->cores[0]->executionTime);
+    
+    sample_cmp_pwr[DRAMP] =
+        proc->mc->dram->rt_power.readOp.dynamic / (proc->cores[0]->executionTime);
   }
 }
 
