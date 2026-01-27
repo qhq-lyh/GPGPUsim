@@ -215,6 +215,8 @@ class gpgpu_sim_wrapper {
   std::vector<std::vector<double>> sample_Per_cmp_pwr;
   std::vector<double> initpower_coeff;
   std::vector<double> effpower_coeff;
+  std::vector<std::vector<double>> initpower_coeff_per_core;
+  std::vector<std::vector<double>> effpower_coeff_per_core;
 
   // For calculating steady-state average
   unsigned sample_start;
