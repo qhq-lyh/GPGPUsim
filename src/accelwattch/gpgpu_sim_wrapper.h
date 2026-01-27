@@ -222,6 +222,8 @@ class gpgpu_sim_wrapper {
   double init_inst_val;
   double tot_sfu_accesses;
   double tot_fpu_accesses;
+  std::vector<double> tot_sfu_accesses_PerCore;
+  std::vector<double> tot_fpu_accesses_PerCore;
   double modeled_chip_voltage;
   unsigned avg_threads_per_warp;
   std::vector<double> samples;
