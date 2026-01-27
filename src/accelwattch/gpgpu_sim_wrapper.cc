@@ -990,46 +990,57 @@ void gpgpu_sim_wrapper::update_coefficients(unsigned ithCore) {
   initpower_coeff[INT_ACC] =
       proc->cores[ithCore]->get_coefficient_ialu_accesses() *
       (proc->cores[ithCore]->exu->rf_fu_clockRate / proc->cores[ithCore]->exu->clockRate);
+  #if Lyhong_Percore_sim
+    double fpu_accesses =
+        tot_fpu_accesses_PerCore[ithCore];
+    double sfu_accesses =
+        tot_sfu_accesses_PerCore[ithCore];
+  #else
+    double fpu_accesses =
+        tot_fpu_accesses;
+    double sfu_accesses =
+        tot_sfu_accesses;
+  #endif
 
-  if (tot_fpu_accesses != 0) {
+  if (fpu_accesses != 0) {
     initpower_coeff[FP_ACC] =
-        fp_coeff * sample_perf_counters[FP_ACC] / tot_fpu_accesses;
+        fp_coeff * sample_perf_counters[FP_ACC] / fpu_accesses;
     initpower_coeff[DP_ACC] =
-        fp_coeff * sample_perf_counters[DP_ACC] / tot_fpu_accesses;
+        fp_coeff * sample_perf_counters[DP_ACC] / fpu_accesses;
   } else {
     initpower_coeff[FP_ACC] = 0;
     initpower_coeff[DP_ACC] = 0;
   }
 
-  if (((Lyhong_Percore_sim == 0) ? tot_sfu_accesses: tot_sfu_accesses_PerCore[ithCore]) != 0) {
+  if (sfu_accesses != 0) {
     initpower_coeff[INT_MUL24_ACC] =
-        sfu_coeff * sample_perf_counters[INT_MUL24_ACC] / tot_sfu_accesses;
+        sfu_coeff * sample_perf_counters[INT_MUL24_ACC] / sfu_accesses;
     initpower_coeff[INT_MUL32_ACC] =
-        sfu_coeff * sample_perf_counters[INT_MUL32_ACC] / tot_sfu_accesses;
+        sfu_coeff * sample_perf_counters[INT_MUL32_ACC] / sfu_accesses;
     initpower_coeff[INT_MUL_ACC] =
-        sfu_coeff * sample_perf_counters[INT_MUL_ACC] / tot_sfu_accesses;
+        sfu_coeff * sample_perf_counters[INT_MUL_ACC] / sfu_accesses;
     initpower_coeff[INT_DIV_ACC] =
-        sfu_coeff * sample_perf_counters[INT_DIV_ACC] / tot_sfu_accesses;
+        sfu_coeff * sample_perf_counters[INT_DIV_ACC] / sfu_accesses;
     initpower_coeff[DP_MUL_ACC] =
-        sfu_coeff * sample_perf_counters[DP_MUL_ACC] / tot_sfu_accesses;
+        sfu_coeff * sample_perf_counters[DP_MUL_ACC] / sfu_accesses;
     initpower_coeff[DP_DIV_ACC] =
-        sfu_coeff * sample_perf_counters[DP_DIV_ACC] / tot_sfu_accesses;
+        sfu_coeff * sample_perf_counters[DP_DIV_ACC] / sfu_accesses;
     initpower_coeff[FP_MUL_ACC] =
-        sfu_coeff * sample_perf_counters[FP_MUL_ACC] / tot_sfu_accesses;
+        sfu_coeff * sample_perf_counters[FP_MUL_ACC] / sfu_accesses;
     initpower_coeff[FP_DIV_ACC] =
-        sfu_coeff * sample_perf_counters[FP_DIV_ACC] / tot_sfu_accesses;
+        sfu_coeff * sample_perf_counters[FP_DIV_ACC] / sfu_accesses;
     initpower_coeff[FP_SQRT_ACC] =
-        sfu_coeff * sample_perf_counters[FP_SQRT_ACC] / tot_sfu_accesses;
+        sfu_coeff * sample_perf_counters[FP_SQRT_ACC] / sfu_accesses;
     initpower_coeff[FP_LG_ACC] =
-        sfu_coeff * sample_perf_counters[FP_LG_ACC] / tot_sfu_accesses;
+        sfu_coeff * sample_perf_counters[FP_LG_ACC] / sfu_accesses;
     initpower_coeff[FP_SIN_ACC] =
-        sfu_coeff * sample_perf_counters[FP_SIN_ACC] / tot_sfu_accesses;
+        sfu_coeff * sample_perf_counters[FP_SIN_ACC] / sfu_accesses;
     initpower_coeff[FP_EXP_ACC] =
-        sfu_coeff * sample_perf_counters[FP_EXP_ACC] / tot_sfu_accesses;
+        sfu_coeff * sample_perf_counters[FP_EXP_ACC] / sfu_accesses;
     initpower_coeff[TENSOR_ACC] =
-        sfu_coeff * sample_perf_counters[TENSOR_ACC] / tot_sfu_accesses;
+        sfu_coeff * sample_perf_counters[TENSOR_ACC] / sfu_accesses;
     initpower_coeff[TEX_ACC] =
-        sfu_coeff * sample_perf_counters[TEX_ACC] / tot_sfu_accesses;
+        sfu_coeff * sample_perf_counters[TEX_ACC] / sfu_accesses;
   } else {
     initpower_coeff[INT_MUL24_ACC] = 0;
     initpower_coeff[INT_MUL32_ACC] = 0;
@@ -1099,7 +1110,7 @@ double gpgpu_sim_wrapper::calculate_static_power() {
   double base_static_power = 0.0;
   double lane_static_power = 0.0;
   double per_active_core = (num_cores - num_idle_cores) / num_cores;
-  lyhong_file << "lyhong_print:" << " num_cores: " << num_cores << " num_idle_cores: " << num_idle_cores << " per_active_core: " << per_active_core << std::endl;
+  // lyhong_file << "lyhong_print:" << " num_cores: " << num_cores << " num_idle_cores: " << num_idle_cores << " per_active_core: " << per_active_core << std::endl;
 
   double l1_accesses = initpower_coeff[DC_RH] + initpower_coeff[DC_RM] +
                        initpower_coeff[DC_WH] + initpower_coeff[DC_WM];
