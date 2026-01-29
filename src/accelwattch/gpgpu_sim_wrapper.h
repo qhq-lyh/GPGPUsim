@@ -211,6 +211,7 @@ class gpgpu_sim_wrapper {
   std::vector<double> sample_cmp_pwr;  // Current sample component powers
   std::vector<double>
       sample_perf_counters;  // Current sample component perf. counts
+  std::vector<double> SM_core_power;
   std::vector<std::vector<double>> sample_Per_perf_counters;
   std::vector<std::vector<double>> sample_Per_cmp_pwr;
   std::vector<double> initpower_coeff;

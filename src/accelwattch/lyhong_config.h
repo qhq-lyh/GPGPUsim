@@ -7,3 +7,7 @@
 #ifndef Sim_Num_core
 #define Sim_Num_core 80 
 #endif
+
+#ifndef Percore_detail
+#define Percore_detail 0
+#endif
