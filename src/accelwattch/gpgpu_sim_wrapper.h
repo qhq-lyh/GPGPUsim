@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <iomanip> 
 #include <zlib.h>
 #include <fstream>
 #include <iostream>

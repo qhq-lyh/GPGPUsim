@@ -1517,6 +1517,7 @@ void gpgpu_sim_wrapper::update_components_power() {
       sm_header_dumped = true;
     }
     double Total_Power_SM = 0.0;
+    lyhong_file << std::fixed << std::setprecision(3);
     for (unsigned i = 0; i < num_cores; i++) {
       SM_core_power[i] = sample_Per_cmp_pwr[i][IBP] + 
                           sample_Per_cmp_pwr[i][ICP] + 
@@ -1548,32 +1549,33 @@ void gpgpu_sim_wrapper::update_components_power() {
       lyhong_file << SM_core_power[i] << "\t";
     }
     lyhong_file << Total_Power_SM << std::endl;
-    // lyhong_file << "IBP: " << sample_Per_cmp_pwr[0][IBP] << std::endl;
-    // lyhong_file << "ICP: " << sample_Per_cmp_pwr[0][ICP] << std::endl;
-    // lyhong_file << "DCP: " << sample_Per_cmp_pwr[0][DCP] << std::endl;
-    // lyhong_file << "TCP: " << sample_Per_cmp_pwr[0][TCP] << std::endl;
-    // lyhong_file << "SHRDP: " << sample_Per_cmp_pwr[0][SHRDP] << std::endl;
-    // lyhong_file << "RFP: " << sample_Per_cmp_pwr[0][RFP] << std::endl;
-    // lyhong_file << "INTP: " << sample_Per_cmp_pwr[0][INTP] << std::endl;
-    // lyhong_file << "FPUP: " << sample_Per_cmp_pwr[0][FPUP] << std::endl;
-    // lyhong_file << "DPUP: " << sample_Per_cmp_pwr[0][DPUP] << std::endl;
-    // lyhong_file << "INT_MULP: " << sample_Per_cmp_pwr[0][INT_MULP] << std::endl;
-    // lyhong_file << "INT_MUL24P: " << sample_Per_cmp_pwr[0][INT_MUL24P] << std::endl;
-    // lyhong_file << "INT_MUL32P: " << sample_Per_cmp_pwr[0][INT_MUL32P] << std::endl;
-    // lyhong_file << "INT_DIVP: " << sample_Per_cmp_pwr[0][INT_DIVP] << std::endl;
-    // lyhong_file << "FP_MULP: " << sample_Per_cmp_pwr[0][FP_MULP] << std::endl;
-    // lyhong_file << "FP_DIVP: " << sample_Per_cmp_pwr[0][FP_DIVP] << std::endl;
-    // lyhong_file << "FP_SQRTP: " << sample_Per_cmp_pwr[0][FP_SQRTP] << std::endl;
-    // lyhong_file << "FP_LGP: " << sample_Per_cmp_pwr[0][FP_LGP] << std::endl;
-    // lyhong_file << "FP_SINP: " << sample_Per_cmp_pwr[0][FP_SINP] << std::endl;
-    // lyhong_file << "FP_EXP: " << sample_Per_cmp_pwr[0][FP_EXP] << std::endl;
-    // lyhong_file << "DP_MULP: " << sample_Per_cmp_pwr[0][DP_MULP] << std::endl;
-    // lyhong_file << "DP_DIVP: " << sample_Per_cmp_pwr[0][DP_DIVP] << std::endl;
-    // lyhong_file << "TENSORP: " << sample_Per_cmp_pwr[0][TENSORP] << std::endl;
-    // lyhong_file << "TEXP: " << sample_Per_cmp_pwr[0][TEXP] << std::endl;
-    // lyhong_file << "SCHEDP: " << sample_Per_cmp_pwr[0][SCHEDP] << std::endl;
-    // lyhong_file << "IDLE_COREP: " << sample_Per_cmp_pwr[0][IDLE_COREP] << std::endl;
-    // lyhong_file << "PIPEP: " << sample_Per_cmp_pwr[0][PIPEP] << std::endl;
+    lyhong_SM_file << "IBP: " << sample_Per_cmp_pwr[0][IBP] << std::endl;
+    lyhong_SM_file << "ICP: " << sample_Per_cmp_pwr[0][ICP] << std::endl;
+    lyhong_SM_file << "DCP: " << sample_Per_cmp_pwr[0][DCP] << std::endl;
+    lyhong_SM_file << "TCP: " << sample_Per_cmp_pwr[0][TCP] << std::endl;
+    lyhong_SM_file << "SHRDP: " << sample_Per_cmp_pwr[0][SHRDP] << std::endl;
+    lyhong_SM_file << "RFP: " << sample_Per_cmp_pwr[0][RFP] << std::endl;
+    lyhong_SM_file << "INTP: " << sample_Per_cmp_pwr[0][INTP] << std::endl;
+    lyhong_SM_file << "FPUP: " << sample_Per_cmp_pwr[0][FPUP] << std::endl;
+    lyhong_SM_file << "DPUP: " << sample_Per_cmp_pwr[0][DPUP] << std::endl;
+    lyhong_SM_file << "INT_MULP: " << sample_Per_cmp_pwr[0][INT_MULP] << std::endl;
+    lyhong_SM_file << "INT_MUL24P: " << sample_Per_cmp_pwr[0][INT_MUL24P] << std::endl;
+    lyhong_SM_file << "INT_MUL32P: " << sample_Per_cmp_pwr[0][INT_MUL32P] << std::endl;
+    lyhong_SM_file << "INT_DIVP: " << sample_Per_cmp_pwr[0][INT_DIVP] << std::endl;
+    lyhong_SM_file << "FP_MULP: " << sample_Per_cmp_pwr[0][FP_MULP] << std::endl;
+    lyhong_SM_file << "FP_DIVP: " << sample_Per_cmp_pwr[0][FP_DIVP] << std::endl;
+    lyhong_SM_file << "FP_SQRTP: " << sample_Per_cmp_pwr[0][FP_SQRTP] << std::endl;
+    lyhong_SM_file << "FP_LGP: " << sample_Per_cmp_pwr[0][FP_LGP] << std::endl;
+    lyhong_SM_file << "FP_SINP: " << sample_Per_cmp_pwr[0][FP_SINP] << std::endl;
+    lyhong_SM_file << "FP_EXP: " << sample_Per_cmp_pwr[0][FP_EXP] << std::endl;
+    lyhong_SM_file << "DP_MULP: " << sample_Per_cmp_pwr[0][DP_MULP] << std::endl;
+    lyhong_SM_file << "DP_DIVP: " << sample_Per_cmp_pwr[0][DP_DIVP] << std::endl;
+    lyhong_SM_file << "TENSORP: " << sample_Per_cmp_pwr[0][TENSORP] << std::endl;
+    lyhong_SM_file << "TEXP: " << sample_Per_cmp_pwr[0][TEXP] << std::endl;
+    lyhong_SM_file << "SCHEDP: " << sample_Per_cmp_pwr[0][SCHEDP] << std::endl;
+    lyhong_SM_file << "IDLE_COREP: " << sample_Per_cmp_pwr[0][IDLE_COREP] << std::endl;
+    lyhong_SM_file << "PIPEP: " << sample_Per_cmp_pwr[0][PIPEP] << std::endl;
+    lyhong_SM_file.flush();
     lyhong_file.flush();
     
     powerfile << "L2CP: " << sample_cmp_pwr[L2CP] << std::endl;

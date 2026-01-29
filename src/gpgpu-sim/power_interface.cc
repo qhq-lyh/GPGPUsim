@@ -198,9 +198,9 @@ void mcpat_cycle(const gpgpu_sim_config &config,
       float active_sms = (*power_stats->m_active_sms) / stat_sample_freq;
       float num_cores = shdr_config->num_shader();
       float num_idle_core = num_cores - active_sms;
-      wrapper->set_Per_idle_core_power(active_sm_norm);
       wrapper->set_num_cores(num_cores);
       wrapper->set_idle_core_power(num_idle_core);
+      wrapper->set_Per_idle_core_power(active_sm_norm);
       wrapper->set_Per_inst_power(
           shdr_config->gpgpu_clock_gated_lanes, stat_sample_freq,
           stat_sample_freq, power_stats->Per_get_total_inst(0),
