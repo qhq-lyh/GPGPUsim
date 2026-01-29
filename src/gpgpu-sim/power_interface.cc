@@ -174,8 +174,7 @@ void mcpat_cycle(const gpgpu_sim_config &config,
                                   power_stats->get_ialu_accessess(0),
                                   power_stats->get_tot_sfu_accessess(0));
 
-      wrapper->set_avg_active_threads(power_stats->get_active_threads(0)); // About Static Power, No need to per core?
-
+      wrapper->set_avg_active_threads(power_stats->get_active_threads(0)); 
       // Average active lanes for sp and sfu pipelines
       float avg_sp_active_lanes =
           (power_stats->get_sp_active_lanes()) / stat_sample_freq;
@@ -212,6 +211,8 @@ void mcpat_cycle(const gpgpu_sim_config &config,
       float active_sms = (*power_stats->m_active_sms) / stat_sample_freq;
       float num_cores = shdr_config->num_shader();
       float num_idle_core = num_cores - active_sms;
+      wrapper->set_num_cores(num_cores);
+      wrapper->set_idle_core_power(num_idle_core);
       wrapper->set_Per_inst_power(
           shdr_config->gpgpu_clock_gated_lanes, stat_sample_freq,
           stat_sample_freq, power_stats->Per_get_total_inst(0),
@@ -242,9 +243,6 @@ void mcpat_cycle(const gpgpu_sim_config &config,
       wrapper->set_l2cache_power(
           power_stats->get_l2_read_hits(0), power_stats->get_l2_read_misses(0),
           power_stats->get_l2_write_hits(0), power_stats->get_l2_write_misses(0));
-
-      wrapper->set_num_cores(num_cores);
-      wrapper->set_idle_core_power(num_idle_core);
 
       // Lyhong_TODO: This constant may not need to be divided by num_core
       std::vector<double> Per_pipeline_duty_cycle(shdr_config->num_shader(), 0.0);
@@ -277,23 +275,26 @@ void mcpat_cycle(const gpgpu_sim_config &config,
                                       power_stats->Per_get_sin_accessess(0),power_stats->Per_get_exp_accessess(0));
       wrapper->set_Per_tensor_tex_accesses(power_stats->Per_get_tensor_accessess(0),
                                           power_stats->Per_get_tex_accessess(0));
-
       wrapper->set_Per_exec_unit_power(
           power_stats->Per_get_tot_fpu_accessess(0),
           power_stats->Per_get_ialu_accessess(0),
           power_stats->Per_get_tot_sfu_accessess(0));
-      
+      wrapper->set_avg_active_threads(power_stats->get_active_threads(0)); // About Static Power, No need to per core?
+      // cout<<"Lyhong Test3"<<std::endl;
       // Lyhong_TODO: This constant may not need to be divided by num_core
       std::vector<double> Per_avg_sp_active_lanes = power_stats->Per_get_sp_active_lanes();
       std::vector<double> Per_avg_sfu_active_lanes = power_stats->Per_get_sfu_active_lanes();
-      for(unsigned i = 0; i < shdr_config->num_shader(); i++) {
-       if (Per_avg_sp_active_lanes[i] > (32.0 / shdr_config->num_shader())) Per_avg_sp_active_lanes[i] = (32.0 / shdr_config->num_shader());
-       if (Per_avg_sfu_active_lanes[i] > (32.0 / shdr_config->num_shader())) Per_avg_sfu_active_lanes[i] = (32.0 / shdr_config->num_shader());
-       assert(Per_avg_sp_active_lanes[i] <= (32 / shdr_config->num_shader()));
-       assert(Per_avg_sfu_active_lanes[i] <= (32 / shdr_config->num_shader()));
+      // cout<<"Lyhong Test4"<<std::endl;
+      // cout<<"test?: "<<Per_avg_sp_active_lanes.size()<<"   "<<Per_avg_sfu_active_lanes.size()<<std::endl;
+      for(unsigned i = 0; i < num_cores; i++) {
+        // cout<<"test?: "<<Per_avg_sp_active_lanes[i]<<"   "<<Per_avg_sfu_active_lanes[i]<<std::endl;
+        if (Per_avg_sp_active_lanes[i] > (32.0 / num_cores)) Per_avg_sp_active_lanes[i] = (32.0 / num_cores);
+        if (Per_avg_sfu_active_lanes[i] > (32.0 / num_cores)) Per_avg_sfu_active_lanes[i] = (32.0 / num_cores);
+        assert(Per_avg_sp_active_lanes[i] <= (32 / num_cores));
+        assert(Per_avg_sfu_active_lanes[i] <= (32 / num_cores));
       }
+      // cout<<"Lyhong Test5"<<std::endl;
       wrapper->set_Per_active_lanes_power(Per_avg_sp_active_lanes, Per_avg_sfu_active_lanes);
-
       double n_icnt_simt_to_mem = (double)power_stats->get_icnt_simt_to_mem(
           0);  // # flits from SIMT clusters
               // to memory partitions

@@ -521,7 +521,11 @@ void gpgpu_sim_wrapper::set_l2cache_power(double read_hits, double read_misses,
   sample_perf_counters[L2_WM] = write_misses;
 }
 
-void gpgpu_sim_wrapper::set_num_cores(double num_core) { num_cores = num_core; }
+void gpgpu_sim_wrapper::set_num_cores(double num_core) { 
+  num_cores = num_core; 
+  tot_fpu_accesses_PerCore.resize(num_cores);
+  tot_sfu_accesses_PerCore.resize(num_cores);
+}
 
 void gpgpu_sim_wrapper::set_idle_core_power(double num_idle_core) {
   p->sys.num_idle_cores = num_idle_core;
@@ -781,14 +785,15 @@ void gpgpu_sim_wrapper::power_metrics_calculations() {
       ((sample_power < gpu_tot_power.min) || (gpu_tot_power.min == 0))
           ? sample_power
           : gpu_tot_power.min;
-  lyhong_file << "Total_sample_count(TSC): " << total_sample_count << "      (time = TSC * gpgpu_runtime_stat / freq)"   << std::endl;
-  lyhong_file << "Kernel_sample_count: " << kernel_sample_count<<std::endl;
-  lyhong_file << "rt_power.readOp.dynamic: " << proc->rt_power.readOp.dynamic << "      (IDLE_COREP + gpu_*P)"  << std::endl;
-  lyhong_file << "Total Power: " << sample_power << std::endl;
-  for (unsigned i = 0; i < num_pwr_cmps; ++i) {
-    lyhong_file << "gpu_" << pwr_cmp_label[i] << ": " << sample_cmp_pwr[i] << " " << std::endl;
-  }
-  if(Lyhong_Percore_sim) {  // sm start
+  if(!Lyhong_Percore_sim) {
+    lyhong_file << "Total_sample_count(TSC): " << total_sample_count << "      (time = TSC * gpgpu_runtime_stat / freq)"   << std::endl;
+    lyhong_file << "Kernel_sample_count: " << kernel_sample_count<<std::endl;
+    lyhong_file << "rt_power.readOp.dynamic: " << proc->rt_power.readOp.dynamic << "      (IDLE_COREP + gpu_*P)"  << std::endl;
+    lyhong_file << "Total Power: " << sample_power << std::endl;
+    for (unsigned i = 0; i < num_pwr_cmps; ++i) {
+      lyhong_file << "gpu_" << pwr_cmp_label[i] << ": " << sample_cmp_pwr[i] << " " << std::endl;
+    }
+  } else {  // sm start
     if (!sm_header_dumped) {
       for (unsigned i = 0; i < num_cores; i++)
         lyhong_SM_file << "SM_" << i << "_INT_MULP\t";
@@ -881,40 +886,29 @@ void gpgpu_sim_wrapper::print_trace_files() {
   close_files();
 }
 
-void gpgpu_sim_wrapper::update_coefficients(unsigned ithCore) {
-  #if Lyhong_Percore_sim
-    std::vector<double> &init = initpower_coeff_per_core[ithCore];
-    std::vector<double> &eff  = effpower_coeff_per_core[ithCore];
-    double fpu_accesses =
-        tot_fpu_accesses_PerCore[ithCore];
-    double sfu_accesses =
-        tot_sfu_accesses_PerCore[ithCore];
-  #else
-    std::vector<double> &init = initpower_coeff;
-    std::vector<double> &eff  = effpower_coeff;
-    double fpu_accesses =
-        tot_fpu_accesses;
-    double sfu_accesses =
-        tot_sfu_accesses;
-  #endif
+void gpgpu_sim_wrapper::update_coefficients() {
+  std::vector<double> &init = initpower_coeff;
+  std::vector<double> &eff  = effpower_coeff;
+  double fpu_accesses = tot_fpu_accesses;
+  double sfu_accesses = tot_sfu_accesses;
 
-  init[FP_INT] = proc->cores[ithCore]->get_coefficient_fpint_insts();
+  init[FP_INT] = proc->cores[0]->get_coefficient_fpint_insts();
   eff[FP_INT] =
       init[FP_INT] * p->sys.scaling_coefficients[FP_INT];
 
-  init[TOT_INST] = proc->cores[ithCore]->get_coefficient_tot_insts();
+  init[TOT_INST] = proc->cores[0]->get_coefficient_tot_insts();
   eff[TOT_INST] =
       init[TOT_INST] * p->sys.scaling_coefficients[TOT_INST];
 
   init[REG_RD] =
-      proc->cores[ithCore]->get_coefficient_regreads_accesses() *
-      (proc->cores[ithCore]->exu->rf_fu_clockRate / proc->cores[ithCore]->exu->clockRate);
+      proc->cores[0]->get_coefficient_regreads_accesses() *
+      (proc->cores[0]->exu->rf_fu_clockRate / proc->cores[0]->exu->clockRate);
   init[REG_WR] =
-      proc->cores[ithCore]->get_coefficient_regwrites_accesses() *
-      (proc->cores[ithCore]->exu->rf_fu_clockRate / proc->cores[ithCore]->exu->clockRate);
+      proc->cores[0]->get_coefficient_regwrites_accesses() *
+      (proc->cores[0]->exu->rf_fu_clockRate / proc->cores[0]->exu->clockRate);
   init[NON_REG_OPs] =
-      proc->cores[ithCore]->get_coefficient_noregfileops_accesses() *
-      (proc->cores[ithCore]->exu->rf_fu_clockRate / proc->cores[ithCore]->exu->clockRate);
+      proc->cores[0]->get_coefficient_noregfileops_accesses() *
+      (proc->cores[0]->exu->rf_fu_clockRate / proc->cores[0]->exu->clockRate);
   eff[REG_RD] =
       init[REG_RD] * p->sys.scaling_coefficients[REG_RD];
   eff[REG_WR] =
@@ -922,25 +916,25 @@ void gpgpu_sim_wrapper::update_coefficients(unsigned ithCore) {
   eff[NON_REG_OPs] =
       init[NON_REG_OPs] * p->sys.scaling_coefficients[NON_REG_OPs];
 
-  init[IC_H] = proc->cores[ithCore]->get_coefficient_icache_hits();
-  init[IC_M] = proc->cores[ithCore]->get_coefficient_icache_misses();
+  init[IC_H] = proc->cores[0]->get_coefficient_icache_hits();
+  init[IC_M] = proc->cores[0]->get_coefficient_icache_misses();
   eff[IC_H] =
       init[IC_H] * p->sys.scaling_coefficients[IC_H];
   eff[IC_M] =
       init[IC_M] * p->sys.scaling_coefficients[IC_M];
 
-  init[CC_H] = (proc->cores[ithCore]->get_coefficient_ccache_readhits() +
+  init[CC_H] = (proc->cores[0]->get_coefficient_ccache_readhits() +
                            proc->get_coefficient_readcoalescing());
-  init[CC_M] = (proc->cores[ithCore]->get_coefficient_ccache_readmisses() +
+  init[CC_M] = (proc->cores[0]->get_coefficient_ccache_readmisses() +
                            proc->get_coefficient_readcoalescing());
   eff[CC_H] =
       init[CC_H] * p->sys.scaling_coefficients[CC_H];
   eff[CC_M] =
       init[CC_M] * p->sys.scaling_coefficients[CC_M];
 
-  init[TC_H] = (proc->cores[ithCore]->get_coefficient_tcache_readhits() +
+  init[TC_H] = (proc->cores[0]->get_coefficient_tcache_readhits() +
                            proc->get_coefficient_readcoalescing());
-  init[TC_M] = (proc->cores[ithCore]->get_coefficient_tcache_readmisses() +
+  init[TC_M] = (proc->cores[0]->get_coefficient_tcache_readmisses() +
                            proc->get_coefficient_readcoalescing());
   eff[TC_H] =
       init[TC_H] * p->sys.scaling_coefficients[TC_H];
@@ -948,19 +942,19 @@ void gpgpu_sim_wrapper::update_coefficients(unsigned ithCore) {
       init[TC_M] * p->sys.scaling_coefficients[TC_M];
 
   init[SHRD_ACC] =
-      proc->cores[ithCore]->get_coefficient_sharedmemory_readhits();
+      proc->cores[0]->get_coefficient_sharedmemory_readhits();
   eff[SHRD_ACC] =
       init[SHRD_ACC] * p->sys.scaling_coefficients[SHRD_ACC];
 
-  init[DC_RH] = (proc->cores[ithCore]->get_coefficient_dcache_readhits() +
+  init[DC_RH] = (proc->cores[0]->get_coefficient_dcache_readhits() +
                             proc->get_coefficient_readcoalescing());
   init[DC_RM] =
-      (proc->cores[ithCore]->get_coefficient_dcache_readmisses() +
+      (proc->cores[0]->get_coefficient_dcache_readmisses() +
        proc->get_coefficient_readcoalescing());
-  init[DC_WH] = (proc->cores[ithCore]->get_coefficient_dcache_writehits() +
+  init[DC_WH] = (proc->cores[0]->get_coefficient_dcache_writehits() +
                             proc->get_coefficient_writecoalescing());
   init[DC_WM] =
-      (proc->cores[ithCore]->get_coefficient_dcache_writemisses() +
+      (proc->cores[0]->get_coefficient_dcache_writemisses() +
        proc->get_coefficient_writecoalescing());
   eff[DC_RH] =
       init[DC_RH] * p->sys.scaling_coefficients[DC_RH];
@@ -989,7 +983,7 @@ void gpgpu_sim_wrapper::update_coefficients(unsigned ithCore) {
   eff[IDLE_CORE_N] =
       init[IDLE_CORE_N] * p->sys.scaling_coefficients[IDLE_CORE_N];
 
-  init[PIPE_A] = proc->cores[ithCore]->get_coefficient_duty_cycle();
+  init[PIPE_A] = proc->cores[0]->get_coefficient_duty_cycle();
   eff[PIPE_A] =
       init[PIPE_A] * p->sys.scaling_coefficients[PIPE_A];
 
@@ -1003,12 +997,12 @@ void gpgpu_sim_wrapper::update_coefficients(unsigned ithCore) {
   eff[MEM_PRE] =
       init[MEM_PRE] * p->sys.scaling_coefficients[MEM_PRE];
 
-  double fp_coeff = proc->cores[ithCore]->get_coefficient_fpu_accesses();
-  double sfu_coeff = proc->cores[ithCore]->get_coefficient_sfu_accesses();
+  double fp_coeff = proc->cores[0]->get_coefficient_fpu_accesses();
+  double sfu_coeff = proc->cores[0]->get_coefficient_sfu_accesses();
 
   init[INT_ACC] =
-      proc->cores[ithCore]->get_coefficient_ialu_accesses() *
-      (proc->cores[ithCore]->exu->rf_fu_clockRate / proc->cores[ithCore]->exu->clockRate);
+      proc->cores[0]->get_coefficient_ialu_accesses() *
+      (proc->cores[0]->exu->rf_fu_clockRate / proc->cores[0]->exu->clockRate);
 
   if (fpu_accesses != 0) {
     init[FP_ACC] =
@@ -1088,7 +1082,7 @@ void gpgpu_sim_wrapper::update_coefficients(unsigned ithCore) {
   eff[NOC_A] =
       init[NOC_A] * p->sys.scaling_coefficients[NOC_A];
 
-  // const_dynamic_power=proc->get_const_dynamic_power()/(proc->cores[ithCore]->executionTime);
+  // const_dynamic_power=proc->get_const_dynamic_power()/(proc->cores[0]->executionTime);
 
   for (unsigned i = 0; i < num_perf_counters; i++) {
     init[i] /= (proc->cores[0]->executionTime);
@@ -1097,34 +1091,36 @@ void gpgpu_sim_wrapper::update_coefficients(unsigned ithCore) {
 }
 
 double gpgpu_sim_wrapper::calculate_static_power() {
+  std::vector<double> &init = initpower_coeff;
+  std::vector<double> &eff  = effpower_coeff;
   double int_accesses =
-      initpower_coeff[INT_ACC] + initpower_coeff[INT_MUL24_ACC] +
-      initpower_coeff[INT_MUL32_ACC] + initpower_coeff[INT_MUL_ACC] +
-      initpower_coeff[INT_DIV_ACC];
-  double int_add_accesses = initpower_coeff[INT_ACC];
+      init[INT_ACC] + init[INT_MUL24_ACC] +
+      init[INT_MUL32_ACC] + init[INT_MUL_ACC] +
+      init[INT_DIV_ACC];
+  double int_add_accesses = init[INT_ACC];
   double int_mul_accesses =
-      initpower_coeff[INT_MUL24_ACC] + initpower_coeff[INT_MUL32_ACC] +
-      initpower_coeff[INT_MUL_ACC] + initpower_coeff[INT_DIV_ACC];
-  double fp_accesses = initpower_coeff[FP_ACC] + initpower_coeff[FP_MUL_ACC] +
-                       initpower_coeff[FP_DIV_ACC];
-  double dp_accesses = initpower_coeff[DP_ACC] + initpower_coeff[DP_MUL_ACC] +
-                       initpower_coeff[DP_DIV_ACC];
+      init[INT_MUL24_ACC] + init[INT_MUL32_ACC] +
+      init[INT_MUL_ACC] + init[INT_DIV_ACC];
+  double fp_accesses = init[FP_ACC] + init[FP_MUL_ACC] +
+                       init[FP_DIV_ACC];
+  double dp_accesses = init[DP_ACC] + init[DP_MUL_ACC] +
+                       init[DP_DIV_ACC];
   double sfu_accesses =
-      initpower_coeff[FP_SQRT_ACC] + initpower_coeff[FP_LG_ACC] +
-      initpower_coeff[FP_SIN_ACC] + initpower_coeff[FP_EXP_ACC];
-  double tensor_accesses = initpower_coeff[TENSOR_ACC];
-  double tex_accesses = initpower_coeff[TEX_ACC];
+      init[FP_SQRT_ACC] + init[FP_LG_ACC] +
+      init[FP_SIN_ACC] + init[FP_EXP_ACC];
+  double tensor_accesses = init[TENSOR_ACC];
+  double tex_accesses = init[TEX_ACC];
   double total_static_power = 0.0;
   double base_static_power = 0.0;
   double lane_static_power = 0.0;
   double per_active_core = (num_cores - num_idle_cores) / num_cores;
   // lyhong_file << "lyhong_print:" << " num_cores: " << num_cores << " num_idle_cores: " << num_idle_cores << " per_active_core: " << per_active_core << std::endl;
 
-  double l1_accesses = initpower_coeff[DC_RH] + initpower_coeff[DC_RM] +
-                       initpower_coeff[DC_WH] + initpower_coeff[DC_WM];
-  double l2_accesses = initpower_coeff[L2_RH] + initpower_coeff[L2_RM] +
-                       initpower_coeff[L2_WH] + initpower_coeff[L2_WM];
-  double shared_accesses = initpower_coeff[SHRD_ACC];
+  double l1_accesses = init[DC_RH] + init[DC_RM] +
+                       init[DC_WH] + init[DC_WM];
+  double l2_accesses = init[L2_RH] + init[L2_RM] +
+                       init[L2_WH] + init[L2_WM];
+  double shared_accesses = init[SHRD_ACC];
 
   if (avg_threads_per_warp ==
       0) {  // no functional unit threads, check for memory or a 'LIGHT_SM'
@@ -1229,7 +1225,7 @@ double gpgpu_sim_wrapper::calculate_static_power() {
 
 void gpgpu_sim_wrapper::update_components_power() {
   if(!Lyhong_Percore_sim) {
-    update_coefficients(0);
+    update_coefficients();
     proc_power = proc->rt_power.readOp.dynamic;
     sample_cmp_pwr[IBP] =
         (proc->cores[0]->ifu->IB->rt_power.readOp.dynamic +
@@ -1395,8 +1391,8 @@ void gpgpu_sim_wrapper::update_components_power() {
       assert("Total Power does not equal the sum of the components\n" && (check));
     }
   } else {  // Per SM power
+    update_coefficients();
     for (unsigned i = 0; i < num_cores; i++) {
-      update_coefficients(i);
       proc_power = proc->rt_power.readOp.dynamic;
       sample_Per_cmp_pwr[i][IBP] =
           (proc->cores[i]->ifu->IB->rt_power.readOp.dynamic +

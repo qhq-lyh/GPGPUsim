@@ -105,7 +105,7 @@ class gpgpu_sim_wrapper {
   void print_trace_files();
   void update_components_power();
   double calculate_static_power();
-  void update_coefficients(unsigned ithCore);
+  void update_coefficients();
   void reset_counters();
   void print_power_kernel_stats(double gpu_sim_cycle, double gpu_tot_sim_cycle,
                                 double init_value,
