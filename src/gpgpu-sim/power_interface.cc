@@ -59,32 +59,19 @@ void mcpat_cycle(const gpgpu_sim_config &config,
     return;
   }
   // add by lyhong
-  static bool first_print = true;
-  static float last_sum_active_sm = -1.0f;
+  std::vector<float> active_sm_norm(lyhong_active_sm.size(), 0.0f);
   float sum_active_sm = 0.0f;
   for (size_t i = 0; i < lyhong_active_sm.size(); ++i) {
-    sum_active_sm += lyhong_active_sm[i];
+    active_sm_norm[i] = lyhong_active_sm[i] / static_cast<float>(stat_sample_freq);
+    sum_active_sm += active_sm_norm[i];
   }
-  if (first_print) {
-    printf("Lyhong_print: sum_active_sm = %f, cycle = %u, tot_cycle = %u, stat_sample_freq = %u\n", sum_active_sm, cycle, tot_cycle, stat_sample_freq);
-    first_print = false;
-    printf("  Active SMs: ");
-    for (size_t i = 0; i < lyhong_active_sm.size(); ++i) {
-      if (lyhong_active_sm[i] > 0.0f)
-        printf("%zu ", i);
-    }
-    printf("\n");
+  printf("Lyhong_print: sum_active_sm = %f, cycle = %u, tot_cycle = %u\n", sum_active_sm, cycle, tot_cycle);
+  printf("  Active SMs: ");
+  for (size_t i = 0; i < lyhong_active_sm.size(); ++i) {
+    if (lyhong_active_sm[i] > 0.0f)
+      printf("%zu ", i);
   }
-  if (sum_active_sm != last_sum_active_sm) {
-    printf("Lyhong_print: sum_active_sm = %f, cycle = %u, tot_cycle = %u\n", sum_active_sm, cycle, tot_cycle);
-    printf("  Active SMs: ");
-    for (size_t i = 0; i < lyhong_active_sm.size(); ++i) {
-      if (lyhong_active_sm[i] > 0.0f)
-        printf("%zu ", i);
-    }
-    printf("\n");
-  }
-  last_sum_active_sm = sum_active_sm;
+  printf("\n");
   // add done
   if ((tot_cycle + cycle) % stat_sample_freq == 0) {
     if (dvfs_enabled) {
@@ -211,6 +198,7 @@ void mcpat_cycle(const gpgpu_sim_config &config,
       float active_sms = (*power_stats->m_active_sms) / stat_sample_freq;
       float num_cores = shdr_config->num_shader();
       float num_idle_core = num_cores - active_sms;
+      wrapper->set_Per_idle_core_power(active_sm_norm);
       wrapper->set_num_cores(num_cores);
       wrapper->set_idle_core_power(num_idle_core);
       wrapper->set_Per_inst_power(

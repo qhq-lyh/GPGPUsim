@@ -490,7 +490,7 @@ void Processor::compute() {
   core.rt_power.reset();
   for (i = 0; i < numCore; i++) {
     cores[i]->executionTime =
-        XML->sys.total_cycles / (XML->sys.core[i].clock_rate * 1e6);
+        XML->sys.total_cycles / (XML->sys.core[0].clock_rate * 1e6);
     cores[i]->rt_power.reset();
     cores[i]->compute();
     // cores[i]->computeEnergy(false);

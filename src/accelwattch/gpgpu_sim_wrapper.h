@@ -175,6 +175,7 @@ class gpgpu_sim_wrapper {
   void set_Per_active_lanes_power(const std::vector<double> &Per_sp_avg_active_lane, const std::vector<double> &Per_sfu_avg_active_lane);
   void set_NoC_power(double noc_tot_acc);
   bool sanity_check(double a, double b);
+  void set_Per_idle_core_power(const std::vector<float> &Per_active_core);
 
   PowerscalingCoefficients* get_scaling_coeffs();
 

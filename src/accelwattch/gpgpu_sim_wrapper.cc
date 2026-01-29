@@ -533,6 +533,14 @@ void gpgpu_sim_wrapper::set_idle_core_power(double num_idle_core) {
   sample_perf_counters[IDLE_CORE_N] = num_idle_core;
   num_idle_cores = num_idle_core;
 }
+void gpgpu_sim_wrapper::set_Per_idle_core_power(const std::vector<float> &Per_active_core) {
+  int temp_idle = 0;
+  const float eps = 1e-6f;
+  for(unsigned i = 0; i < num_cores; i++) {
+    temp_idle = (Per_active_core[i] <= eps) ? 1 : 0;
+    sample_Per_cmp_pwr[i][IDLE_COREP] = temp_idle * p->sys.idle_core_power;
+  }
+}
 
 void gpgpu_sim_wrapper::set_duty_cycle_power(double duty_cycle) {
   p->sys.core[0].pipeline_duty_cycle =
@@ -579,12 +587,16 @@ void gpgpu_sim_wrapper::set_exec_unit_power(double fpu_accesses,
 void gpgpu_sim_wrapper::set_Per_exec_unit_power(const std::vector<double> &Per_fpu_accesses,
                                                const std::vector<double> &Per_ialu_accesses,
                                                const std::vector<double> &Per_sfu_accesses) {
+  tot_fpu_accesses = 0;
+  tot_sfu_accesses = 0;
   for (unsigned i = 0; i < num_cores; i++) {
     p->sys.core[i].fpu_accesses = Per_fpu_accesses[i];
     p->sys.core[i].ialu_accesses = Per_ialu_accesses[i];
     p->sys.core[i].mul_accesses = Per_sfu_accesses[i];
     tot_fpu_accesses_PerCore[i] = Per_fpu_accesses[i];
     tot_sfu_accesses_PerCore[i] = Per_sfu_accesses[i];
+    tot_fpu_accesses += Per_fpu_accesses[i];
+    tot_sfu_accesses += Per_sfu_accesses[i];
   }
 }
 
@@ -1320,77 +1332,77 @@ void gpgpu_sim_wrapper::update_components_power() {
           proc->cores[i]->ifu->ID_misc->rt_power.readOp.dynamic +
           proc->cores[i]->ifu->ID_operand->rt_power.readOp.dynamic +
           proc->cores[i]->ifu->ID_inst->rt_power.readOp.dynamic) /
-          (proc->cores[0]->executionTime);
+          (proc->cores[i]->executionTime);
 
       sample_Per_cmp_pwr[i][ICP] = proc->cores[i]->ifu->icache.rt_power.readOp.dynamic /
-                            (proc->cores[0]->executionTime);
+                            (proc->cores[i]->executionTime);
 
       sample_Per_cmp_pwr[i][DCP] = proc->cores[i]->lsu->dcache.rt_power.readOp.dynamic /
-                            (proc->cores[0]->executionTime);
+                            (proc->cores[i]->executionTime);
 
       sample_Per_cmp_pwr[i][TCP] = proc->cores[i]->lsu->tcache.rt_power.readOp.dynamic /
-                            (proc->cores[0]->executionTime);
+                            (proc->cores[i]->executionTime);
 
       sample_Per_cmp_pwr[i][CCP] = proc->cores[i]->lsu->ccache.rt_power.readOp.dynamic /
-                            (proc->cores[0]->executionTime);
+                            (proc->cores[i]->executionTime);
 
       sample_Per_cmp_pwr[i][SHRDP] =
           proc->cores[i]->lsu->sharedmemory.rt_power.readOp.dynamic /
-          (proc->cores[0]->executionTime);
+          (proc->cores[i]->executionTime);
 
       sample_Per_cmp_pwr[i][RFP] =
           (proc->cores[i]->exu->rfu->rt_power.readOp.dynamic /
-          (proc->cores[0]->executionTime)) *
+          (proc->cores[i]->executionTime)) *
           (proc->cores[i]->exu->rf_fu_clockRate / proc->cores[i]->exu->clockRate);
 
       double sample_fp_pwr = (proc->cores[i]->exu->fp_u->rt_power.readOp.dynamic /
-                              (proc->cores[0]->executionTime));
+                              (proc->cores[i]->executionTime));
 
       double sample_sfu_pwr = (proc->cores[i]->exu->mul->rt_power.readOp.dynamic /
-                              (proc->cores[0]->executionTime));
+                              (proc->cores[i]->executionTime));
 
       sample_Per_cmp_pwr[i][INTP] =
           (proc->cores[i]->exu->exeu->rt_power.readOp.dynamic /
-          (proc->cores[0]->executionTime)) *
+          (proc->cores[i]->executionTime)) *
           (proc->cores[i]->exu->rf_fu_clockRate / proc->cores[i]->exu->clockRate);
-      if (tot_fpu_accesses_PerCore[i] != 0) {
+      if (tot_fpu_accesses != 0) {
         sample_Per_cmp_pwr[i][FPUP] =
-          sample_fp_pwr * sample_Per_perf_counters[i][FP_ACC] / tot_fpu_accesses_PerCore[i];
+          sample_fp_pwr * sample_Per_perf_counters[i][FP_ACC] / tot_fpu_accesses;
         sample_Per_cmp_pwr[i][DPUP] =
-          sample_fp_pwr * sample_Per_perf_counters[i][DP_ACC] / tot_fpu_accesses_PerCore[i];
+          sample_fp_pwr * sample_Per_perf_counters[i][DP_ACC] / tot_fpu_accesses;
       } else {
         sample_Per_cmp_pwr[i][FPUP] = 0;
         sample_Per_cmp_pwr[i][DPUP] = 0;
       }
-      if (tot_sfu_accesses_PerCore[i] != 0) {
+      if (tot_sfu_accesses != 0) {
         sample_Per_cmp_pwr[i][INT_MUL24P] =
-          sample_sfu_pwr * sample_Per_perf_counters[i][INT_MUL24_ACC] / tot_sfu_accesses_PerCore[i];
+          sample_sfu_pwr * sample_Per_perf_counters[i][INT_MUL24_ACC] / tot_sfu_accesses;
         sample_Per_cmp_pwr[i][INT_MUL32P] =
-          sample_sfu_pwr * sample_Per_perf_counters[i][INT_MUL32_ACC] / tot_sfu_accesses_PerCore[i];
+          sample_sfu_pwr * sample_Per_perf_counters[i][INT_MUL32_ACC] / tot_sfu_accesses;
         sample_Per_cmp_pwr[i][INT_DIVP] =
-          sample_sfu_pwr * sample_Per_perf_counters[i][INT_DIV_ACC] / tot_sfu_accesses_PerCore[i];
+          sample_sfu_pwr * sample_Per_perf_counters[i][INT_DIV_ACC] / tot_sfu_accesses;
         sample_Per_cmp_pwr[i][FP_MULP] =
-          sample_sfu_pwr * sample_Per_perf_counters[i][FP_MUL_ACC] / tot_sfu_accesses_PerCore[i];
+          sample_sfu_pwr * sample_Per_perf_counters[i][FP_MUL_ACC] / tot_sfu_accesses;
         sample_Per_cmp_pwr[i][FP_DIVP] =
-          sample_sfu_pwr * sample_Per_perf_counters[i][FP_DIV_ACC] / tot_sfu_accesses_PerCore[i];
+          sample_sfu_pwr * sample_Per_perf_counters[i][FP_DIV_ACC] / tot_sfu_accesses;
         sample_Per_cmp_pwr[i][FP_SQRTP] =
-          sample_sfu_pwr * sample_Per_perf_counters[i][FP_SQRT_ACC] / tot_sfu_accesses_PerCore[i];
+          sample_sfu_pwr * sample_Per_perf_counters[i][FP_SQRT_ACC] / tot_sfu_accesses;
         sample_Per_cmp_pwr[i][FP_LGP] =
-          sample_sfu_pwr * sample_Per_perf_counters[i][FP_LG_ACC] / tot_sfu_accesses_PerCore[i];
+          sample_sfu_pwr * sample_Per_perf_counters[i][FP_LG_ACC] / tot_sfu_accesses;
         sample_Per_cmp_pwr[i][FP_SINP] =
-          sample_sfu_pwr * sample_Per_perf_counters[i][FP_SIN_ACC] / tot_sfu_accesses_PerCore[i];
+          sample_sfu_pwr * sample_Per_perf_counters[i][FP_SIN_ACC] / tot_sfu_accesses;
         sample_Per_cmp_pwr[i][FP_EXP] =
-          sample_sfu_pwr * sample_Per_perf_counters[i][FP_EXP_ACC] / tot_sfu_accesses_PerCore[i];
+          sample_sfu_pwr * sample_Per_perf_counters[i][FP_EXP_ACC] / tot_sfu_accesses;
         sample_Per_cmp_pwr[i][DP_MULP] =
-          sample_sfu_pwr * sample_Per_perf_counters[i][DP_MUL_ACC] / tot_sfu_accesses_PerCore[i];
+          sample_sfu_pwr * sample_Per_perf_counters[i][DP_MUL_ACC] / tot_sfu_accesses;
         sample_Per_cmp_pwr[i][DP_DIVP] =
-          sample_sfu_pwr * sample_Per_perf_counters[i][DP_DIV_ACC] / tot_sfu_accesses_PerCore[i];
+          sample_sfu_pwr * sample_Per_perf_counters[i][DP_DIV_ACC] / tot_sfu_accesses;
         sample_Per_cmp_pwr[i][TENSORP] =
-          sample_sfu_pwr * sample_Per_perf_counters[i][TENSOR_ACC] / tot_sfu_accesses_PerCore[i];
+          sample_sfu_pwr * sample_Per_perf_counters[i][TENSOR_ACC] / tot_sfu_accesses;
         sample_Per_cmp_pwr[i][TEXP] =
-          sample_sfu_pwr * sample_Per_perf_counters[i][TEX_ACC] / tot_sfu_accesses_PerCore[i];
+          sample_sfu_pwr * sample_Per_perf_counters[i][TEX_ACC] / tot_sfu_accesses;
         sample_Per_cmp_pwr[i][INT_MULP] =
-          sample_sfu_pwr * sample_Per_perf_counters[i][INT_MUL_ACC] / tot_sfu_accesses_PerCore[i];
+          sample_sfu_pwr * sample_Per_perf_counters[i][INT_MUL_ACC] / tot_sfu_accesses;
       } else {
         sample_Per_cmp_pwr[i][INT_MUL24P] = 0;
         sample_Per_cmp_pwr[i][INT_MUL32P] = 0;
@@ -1408,13 +1420,10 @@ void gpgpu_sim_wrapper::update_components_power() {
         sample_Per_cmp_pwr[i][INT_MULP] = 0;
       }
       sample_Per_cmp_pwr[i][SCHEDP] = proc->cores[i]->exu->scheu->rt_power.readOp.dynamic /
-                          (proc->cores[0]->executionTime);
-
-      sample_Per_cmp_pwr[i][IDLE_COREP] =
-          proc->cores[i]->IdleCoreEnergy / (proc->cores[0]->executionTime);
+                          (proc->cores[i]->executionTime);
 
       sample_Per_cmp_pwr[i][PIPEP] =
-          proc->cores[i]->Pipeline_energy / (proc->cores[0]->executionTime);
+          proc->cores[i]->Pipeline_energy / (proc->cores[i]->executionTime);
     }
     sample_cmp_pwr[L2CP] = (proc->XML->sys.number_of_L2s > 0)
                             ? proc->l2array[0]->rt_power.readOp.dynamic /
@@ -1464,6 +1473,155 @@ void gpgpu_sim_wrapper::update_components_power() {
     //     printf("sum_pwr_cmp %f : proc_power %f \n", sum_pwr_cmp, proc_power);
     //   assert("Total Power does not equal the sum of the components\n" && (check));
     // }
+
+    if (!sm_header_dumped) {
+      for (unsigned i = 0; i < num_cores; i++) {
+        lyhong_file << "SM_" << i << "\t";
+      }
+      lyhong_file << "Total_Power" << std::endl;
+      if(Percore_detail) {
+        for (unsigned i = 0; i < num_cores; i++)
+          lyhong_SM_file << "SM_" << i << "_INT_MULP\t";
+        for (unsigned i = 0; i < num_cores; i++)
+          lyhong_SM_file << "SM_" << i << "_INT_MUL24P\t";
+        for (unsigned i = 0; i < num_cores; i++)
+          lyhong_SM_file << "SM_" << i << "_INT_MUL32P\t";
+        for (unsigned i = 0; i < num_cores; i++)
+          lyhong_SM_file << "SM_" << i << "_INT_DIVP\t";
+        for (unsigned i = 0; i < num_cores; i++)
+          lyhong_SM_file << "SM_" << i << "_FP_DIVP\t";
+        for (unsigned i = 0; i < num_cores; i++)
+          lyhong_SM_file << "SM_" << i << "_FP_SQRTP\t";
+        for (unsigned i = 0; i < num_cores; i++)
+          lyhong_SM_file << "SM_" << i << "_FP_LGP\t";
+        for (unsigned i = 0; i < num_cores; i++)
+          lyhong_SM_file << "SM_" << i << "_FP_SINP\t";
+        for (unsigned i = 0; i < num_cores; i++)
+          lyhong_SM_file << "SM_" << i << "_DP_DIVP\t";
+        for (unsigned i = 0; i < num_cores; i++)
+          lyhong_SM_file << "SM_" << i << "_TENSORP\t";
+        for (unsigned i = 0; i < num_cores; i++)
+          lyhong_SM_file << "SM_" << i << "_TEXP\t";
+        for (unsigned i = 0; i < num_cores; i++)
+          lyhong_SM_file << "SM_" << i << "_DPUP\t";
+        for (unsigned i = 0; i < num_cores; i++)
+          lyhong_SM_file << "SM_" << i << "_DP_MULP\t";
+        for (unsigned i = 0; i < num_cores; i++)
+          lyhong_SM_file << "SM_" << i << "_FP_MULP\t";
+        for (unsigned i = 0; i < num_cores; i++)
+          lyhong_SM_file << "SM_" << i << "_FP_EXP\t";
+        for (unsigned i = 0; i < num_cores; i++)
+          lyhong_SM_file << "SM_" << i << "_FPUP" << (i + 1 < num_cores ? "\t" : "");
+        lyhong_SM_file << std::endl;
+      }
+      sm_header_dumped = true;
+    }
+    double Total_Power_SM = 0.0;
+    for (unsigned i = 0; i < num_cores; i++) {
+      SM_core_power[i] = sample_Per_cmp_pwr[i][IBP] + 
+                          sample_Per_cmp_pwr[i][ICP] + 
+                          sample_Per_cmp_pwr[i][DCP] + 
+                          sample_Per_cmp_pwr[i][TCP] + 
+                          sample_Per_cmp_pwr[i][SHRDP] + 
+                          sample_Per_cmp_pwr[i][RFP] + 
+                          sample_Per_cmp_pwr[i][INTP] + 
+                          sample_Per_cmp_pwr[i][FPUP] + 
+                          sample_Per_cmp_pwr[i][DPUP] + 
+                          sample_Per_cmp_pwr[i][INT_MULP] + 
+                          sample_Per_cmp_pwr[i][INT_MUL24P] + 
+                          sample_Per_cmp_pwr[i][INT_MUL32P] + 
+                          sample_Per_cmp_pwr[i][INT_DIVP] + 
+                          sample_Per_cmp_pwr[i][FP_MULP] + 
+                          sample_Per_cmp_pwr[i][FP_DIVP] + 
+                          sample_Per_cmp_pwr[i][FP_SQRTP] + 
+                          sample_Per_cmp_pwr[i][FP_SINP] + 
+                          sample_Per_cmp_pwr[i][FP_LGP] + 
+                          sample_Per_cmp_pwr[i][FP_EXP] + 
+                          sample_Per_cmp_pwr[i][DP_MULP] + 
+                          sample_Per_cmp_pwr[i][DP_DIVP] + 
+                          sample_Per_cmp_pwr[i][TENSORP] + 
+                          sample_Per_cmp_pwr[i][TEXP] + 
+                          sample_Per_cmp_pwr[i][SCHEDP] + 
+                          sample_Per_cmp_pwr[i][IDLE_COREP] + 
+                          sample_Per_cmp_pwr[i][PIPEP];
+      Total_Power_SM += SM_core_power[i];
+      lyhong_file << SM_core_power[i] << "\t";
+    }
+    lyhong_file << Total_Power_SM << std::endl;
+    // lyhong_file << "IBP: " << sample_Per_cmp_pwr[0][IBP] << std::endl;
+    // lyhong_file << "ICP: " << sample_Per_cmp_pwr[0][ICP] << std::endl;
+    // lyhong_file << "DCP: " << sample_Per_cmp_pwr[0][DCP] << std::endl;
+    // lyhong_file << "TCP: " << sample_Per_cmp_pwr[0][TCP] << std::endl;
+    // lyhong_file << "SHRDP: " << sample_Per_cmp_pwr[0][SHRDP] << std::endl;
+    // lyhong_file << "RFP: " << sample_Per_cmp_pwr[0][RFP] << std::endl;
+    // lyhong_file << "INTP: " << sample_Per_cmp_pwr[0][INTP] << std::endl;
+    // lyhong_file << "FPUP: " << sample_Per_cmp_pwr[0][FPUP] << std::endl;
+    // lyhong_file << "DPUP: " << sample_Per_cmp_pwr[0][DPUP] << std::endl;
+    // lyhong_file << "INT_MULP: " << sample_Per_cmp_pwr[0][INT_MULP] << std::endl;
+    // lyhong_file << "INT_MUL24P: " << sample_Per_cmp_pwr[0][INT_MUL24P] << std::endl;
+    // lyhong_file << "INT_MUL32P: " << sample_Per_cmp_pwr[0][INT_MUL32P] << std::endl;
+    // lyhong_file << "INT_DIVP: " << sample_Per_cmp_pwr[0][INT_DIVP] << std::endl;
+    // lyhong_file << "FP_MULP: " << sample_Per_cmp_pwr[0][FP_MULP] << std::endl;
+    // lyhong_file << "FP_DIVP: " << sample_Per_cmp_pwr[0][FP_DIVP] << std::endl;
+    // lyhong_file << "FP_SQRTP: " << sample_Per_cmp_pwr[0][FP_SQRTP] << std::endl;
+    // lyhong_file << "FP_LGP: " << sample_Per_cmp_pwr[0][FP_LGP] << std::endl;
+    // lyhong_file << "FP_SINP: " << sample_Per_cmp_pwr[0][FP_SINP] << std::endl;
+    // lyhong_file << "FP_EXP: " << sample_Per_cmp_pwr[0][FP_EXP] << std::endl;
+    // lyhong_file << "DP_MULP: " << sample_Per_cmp_pwr[0][DP_MULP] << std::endl;
+    // lyhong_file << "DP_DIVP: " << sample_Per_cmp_pwr[0][DP_DIVP] << std::endl;
+    // lyhong_file << "TENSORP: " << sample_Per_cmp_pwr[0][TENSORP] << std::endl;
+    // lyhong_file << "TEXP: " << sample_Per_cmp_pwr[0][TEXP] << std::endl;
+    // lyhong_file << "SCHEDP: " << sample_Per_cmp_pwr[0][SCHEDP] << std::endl;
+    // lyhong_file << "IDLE_COREP: " << sample_Per_cmp_pwr[0][IDLE_COREP] << std::endl;
+    // lyhong_file << "PIPEP: " << sample_Per_cmp_pwr[0][PIPEP] << std::endl;
+    lyhong_file.flush();
+    
+    powerfile << "L2CP: " << sample_cmp_pwr[L2CP] << std::endl;
+    powerfile << "MCP: " << sample_cmp_pwr[MCP] << std::endl;
+    powerfile << "NOCP: " << sample_cmp_pwr[NOCP] << std::endl;
+    powerfile << "DRAMP: " << sample_cmp_pwr[DRAMP] << std::endl;
+    powerfile << "CONSTP: " << sample_cmp_pwr[CONSTP] << std::endl;
+    powerfile << "STATICP: " << sample_cmp_pwr[STATICP] << std::endl;
+    powerfile << "Sum: " << sample_cmp_pwr[L2CP] + sample_cmp_pwr[MCP] + sample_cmp_pwr[NOCP] + sample_cmp_pwr[DRAMP] + sample_cmp_pwr[CONSTP] + sample_cmp_pwr[STATICP] << std::endl;
+    powerfile.flush();
+
+    if(Percore_detail) {
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << sample_Per_cmp_pwr[i][INT_MULP] << "\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << sample_Per_cmp_pwr[i][INT_MUL24P] << "\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << sample_Per_cmp_pwr[i][INT_MUL32P] << "\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << sample_Per_cmp_pwr[i][INT_DIVP] << "\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << sample_Per_cmp_pwr[i][FP_DIVP] << "\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << sample_Per_cmp_pwr[i][FP_SQRTP] << "\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << sample_Per_cmp_pwr[i][FP_LGP] << "\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << sample_Per_cmp_pwr[i][FP_SINP] << "\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << sample_Per_cmp_pwr[i][DP_DIVP] << "\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << sample_Per_cmp_pwr[i][TENSORP] << "\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << sample_Per_cmp_pwr[i][TEXP] << "\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << sample_Per_cmp_pwr[i][DPUP] << "\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << sample_Per_cmp_pwr[i][DP_MULP] << "\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << sample_Per_cmp_pwr[i][FP_MULP] << "\t";
+      for (unsigned i = 0; i < num_cores; i++)
+        lyhong_SM_file << sample_Per_cmp_pwr[i][FP_EXP] << "\t";
+      for (unsigned i = 0; i < num_cores; i++) {
+        lyhong_SM_file << sample_Per_cmp_pwr[i][FPUP] << (i + 1 < num_cores ? "\t" : "");
+      }
+      lyhong_SM_file << std::endl;
+      lyhong_SM_file.flush();
+    }
   }
 }
 
@@ -1543,131 +1701,7 @@ void gpgpu_sim_wrapper::print_power_kernel_stats(
       for (unsigned i = 0; i < num_pwr_cmps; ++i) {
         lyhong_file << "gpu_" << pwr_cmp_label[i] << ": " << sample_cmp_pwr[i] << " " << std::endl;
       }
-    } else {  // sm start
-      if (!sm_header_dumped) {
-        for (unsigned i = 0; i < num_cores; i++) {
-          lyhong_file << "SM_" << i << "\t";
-        }
-        lyhong_file << "Total_Power" << std::endl;
-        if(Percore_detail) {
-          for (unsigned i = 0; i < num_cores; i++)
-            lyhong_SM_file << "SM_" << i << "_INT_MULP\t";
-          for (unsigned i = 0; i < num_cores; i++)
-            lyhong_SM_file << "SM_" << i << "_INT_MUL24P\t";
-          for (unsigned i = 0; i < num_cores; i++)
-            lyhong_SM_file << "SM_" << i << "_INT_MUL32P\t";
-          for (unsigned i = 0; i < num_cores; i++)
-            lyhong_SM_file << "SM_" << i << "_INT_DIVP\t";
-          for (unsigned i = 0; i < num_cores; i++)
-            lyhong_SM_file << "SM_" << i << "_FP_DIVP\t";
-          for (unsigned i = 0; i < num_cores; i++)
-            lyhong_SM_file << "SM_" << i << "_FP_SQRTP\t";
-          for (unsigned i = 0; i < num_cores; i++)
-            lyhong_SM_file << "SM_" << i << "_FP_LGP\t";
-          for (unsigned i = 0; i < num_cores; i++)
-            lyhong_SM_file << "SM_" << i << "_FP_SINP\t";
-          for (unsigned i = 0; i < num_cores; i++)
-            lyhong_SM_file << "SM_" << i << "_DP_DIVP\t";
-          for (unsigned i = 0; i < num_cores; i++)
-            lyhong_SM_file << "SM_" << i << "_TENSORP\t";
-          for (unsigned i = 0; i < num_cores; i++)
-            lyhong_SM_file << "SM_" << i << "_TEXP\t";
-          for (unsigned i = 0; i < num_cores; i++)
-            lyhong_SM_file << "SM_" << i << "_DPUP\t";
-          for (unsigned i = 0; i < num_cores; i++)
-            lyhong_SM_file << "SM_" << i << "_DP_MULP\t";
-          for (unsigned i = 0; i < num_cores; i++)
-            lyhong_SM_file << "SM_" << i << "_FP_MULP\t";
-          for (unsigned i = 0; i < num_cores; i++)
-            lyhong_SM_file << "SM_" << i << "_FP_EXP\t";
-          for (unsigned i = 0; i < num_cores; i++)
-            lyhong_SM_file << "SM_" << i << "_FPUP" << (i + 1 < num_cores ? "\t" : "");
-          lyhong_SM_file << std::endl;
-        }
-        sm_header_dumped = true;
-      }
-      double Total_Power_SM = 0.0;
-      for (unsigned i = 0; i < num_cores; i++) {
-        SM_core_power[i] = sample_Per_cmp_pwr[i][IBP] + 
-                           sample_Per_cmp_pwr[i][ICP] + 
-                           sample_Per_cmp_pwr[i][DCP] + 
-                           sample_Per_cmp_pwr[i][TCP] + 
-                           sample_Per_cmp_pwr[i][SHRDP] + 
-                           sample_Per_cmp_pwr[i][RFP] + 
-                           sample_Per_cmp_pwr[i][INTP] + 
-                           sample_Per_cmp_pwr[i][FPUP] + 
-                           sample_Per_cmp_pwr[i][DPUP] + 
-                           sample_Per_cmp_pwr[i][INT_MULP] + 
-                           sample_Per_cmp_pwr[i][INT_MUL24P] + 
-                           sample_Per_cmp_pwr[i][INT_MUL32P] + 
-                           sample_Per_cmp_pwr[i][INT_DIVP] + 
-                           sample_Per_cmp_pwr[i][FP_MULP] + 
-                           sample_Per_cmp_pwr[i][FP_DIVP] + 
-                           sample_Per_cmp_pwr[i][FP_SQRTP] + 
-                           sample_Per_cmp_pwr[i][FP_SINP] + 
-                           sample_Per_cmp_pwr[i][FP_LGP] + 
-                           sample_Per_cmp_pwr[i][FP_EXP] + 
-                           sample_Per_cmp_pwr[i][DP_MULP] + 
-                           sample_Per_cmp_pwr[i][DP_DIVP] + 
-                           sample_Per_cmp_pwr[i][TENSORP] + 
-                           sample_Per_cmp_pwr[i][TEXP] + 
-                           sample_Per_cmp_pwr[i][SCHEDP] + 
-                           sample_Per_cmp_pwr[i][IDLE_COREP] + 
-                           sample_Per_cmp_pwr[i][PIPEP];
-        Total_Power_SM += SM_core_power[i];
-        lyhong_file << SM_core_power[i] << "\t";
-      }
-      lyhong_file << Total_Power_SM << std::endl;
-      lyhong_file.flush();
-      
-      powerfile << "total sample count(TSC): " << total_sample_count << std::endl;
-      powerfile << "L2CP: " << sample_cmp_pwr[L2CP] << std::endl;
-      powerfile << "MCP: " << sample_cmp_pwr[MCP] << std::endl;
-      powerfile << "NOCP: " << sample_cmp_pwr[NOCP] << std::endl;
-      powerfile << "DRAMP: " << sample_cmp_pwr[DRAMP] << std::endl;
-      powerfile << "CONSTP: " << sample_cmp_pwr[CONSTP] << std::endl;
-      powerfile << "STATICP: " << sample_cmp_pwr[STATICP] << std::endl;
-      powerfile << "Sum: " << sample_cmp_pwr[L2CP] + sample_cmp_pwr[MCP] + sample_cmp_pwr[NOCP] + sample_cmp_pwr[DRAMP] + sample_cmp_pwr[CONSTP] + sample_cmp_pwr[STATICP] << std::endl;
-      powerfile.flush();
-
-      if(Percore_detail) {
-        for (unsigned i = 0; i < num_cores; i++)
-          lyhong_SM_file << sample_Per_cmp_pwr[i][INT_MULP] << "\t";
-        for (unsigned i = 0; i < num_cores; i++)
-          lyhong_SM_file << sample_Per_cmp_pwr[i][INT_MUL24P] << "\t";
-        for (unsigned i = 0; i < num_cores; i++)
-          lyhong_SM_file << sample_Per_cmp_pwr[i][INT_MUL32P] << "\t";
-        for (unsigned i = 0; i < num_cores; i++)
-          lyhong_SM_file << sample_Per_cmp_pwr[i][INT_DIVP] << "\t";
-        for (unsigned i = 0; i < num_cores; i++)
-          lyhong_SM_file << sample_Per_cmp_pwr[i][FP_DIVP] << "\t";
-        for (unsigned i = 0; i < num_cores; i++)
-          lyhong_SM_file << sample_Per_cmp_pwr[i][FP_SQRTP] << "\t";
-        for (unsigned i = 0; i < num_cores; i++)
-          lyhong_SM_file << sample_Per_cmp_pwr[i][FP_LGP] << "\t";
-        for (unsigned i = 0; i < num_cores; i++)
-          lyhong_SM_file << sample_Per_cmp_pwr[i][FP_SINP] << "\t";
-        for (unsigned i = 0; i < num_cores; i++)
-          lyhong_SM_file << sample_Per_cmp_pwr[i][DP_DIVP] << "\t";
-        for (unsigned i = 0; i < num_cores; i++)
-          lyhong_SM_file << sample_Per_cmp_pwr[i][TENSORP] << "\t";
-        for (unsigned i = 0; i < num_cores; i++)
-          lyhong_SM_file << sample_Per_cmp_pwr[i][TEXP] << "\t";
-        for (unsigned i = 0; i < num_cores; i++)
-          lyhong_SM_file << sample_Per_cmp_pwr[i][DPUP] << "\t";
-        for (unsigned i = 0; i < num_cores; i++)
-          lyhong_SM_file << sample_Per_cmp_pwr[i][DP_MULP] << "\t";
-        for (unsigned i = 0; i < num_cores; i++)
-          lyhong_SM_file << sample_Per_cmp_pwr[i][FP_MULP] << "\t";
-        for (unsigned i = 0; i < num_cores; i++)
-          lyhong_SM_file << sample_Per_cmp_pwr[i][FP_EXP] << "\t";
-        for (unsigned i = 0; i < num_cores; i++) {
-          lyhong_SM_file << sample_Per_cmp_pwr[i][FPUP] << (i + 1 < num_cores ? "\t" : "");
-        }
-        lyhong_SM_file << std::endl;
-        lyhong_SM_file.flush();
-      }
-    }
+    } 
   }
 }
 void gpgpu_sim_wrapper::dump() {
