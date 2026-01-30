@@ -1322,6 +1322,14 @@ void gpgpu_sim_wrapper::update_components_power() {
         printf("sum_pwr_cmp %f : proc_power %f \n", sum_pwr_cmp, proc_power);
       assert("Total Power does not equal the sum of the components\n" && (check));
     }
+    lyhong_file << "Total_sample_count(TSC): " << total_sample_count << "      (time = TSC * gpgpu_runtime_stat / freq)"   << std::endl;
+    lyhong_file << "Kernel_sample_count: " << kernel_sample_count<<std::endl;
+    lyhong_file << "rt_power.readOp.dynamic: " << proc->rt_power.readOp.dynamic << "      (IDLE_COREP + gpu_*P)"  << std::endl;
+    lyhong_file << "Total Power: " <<  proc->rt_power.readOp.dynamic + sample_cmp_pwr[CONSTP] + sample_cmp_pwr[STATICP];
+    for (unsigned i = 0; i < num_pwr_cmps; ++i) {
+      lyhong_file << "gpu_" << pwr_cmp_label[i] << ": " << sample_cmp_pwr[i] << " " << std::endl;
+    }
+    lyhong_file.flush();
   } else {  // Per SM power
     update_coefficients();
     for (unsigned i = 0; i < num_cores; i++) {
