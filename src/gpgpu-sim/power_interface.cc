@@ -61,17 +61,21 @@ void mcpat_cycle(const gpgpu_sim_config &config,
   // add by lyhong
   std::vector<float> active_sm_norm(lyhong_active_sm.size(), 0.0f);
   float sum_active_sm = 0.0f;
+  float last_sum_active_sm = 0.0f;
   for (size_t i = 0; i < lyhong_active_sm.size(); ++i) {
     active_sm_norm[i] = lyhong_active_sm[i] / static_cast<float>(stat_sample_freq);
     sum_active_sm += active_sm_norm[i];
   }
-  printf("Lyhong_print: sum_active_sm = %f, cycle = %u, tot_cycle = %u\n", sum_active_sm, cycle, tot_cycle);
-  printf("  Active SMs: ");
-  for (size_t i = 0; i < lyhong_active_sm.size(); ++i) {
-    if (lyhong_active_sm[i] > 0.0f)
-      printf("%zu ", i);
+  if(!((last_sum_active_sm - sum_active_sm) < 0.01f && (last_sum_active_sm - sum_active_sm) > -0.01f)) {
+    printf("Lyhong_print: sum_active_sm = %f, cycle = %u, tot_cycle = %u\n", sum_active_sm, cycle, tot_cycle);
+    printf("  Active SMs: ");
+    for (size_t i = 0; i < lyhong_active_sm.size(); ++i) {
+      if (lyhong_active_sm[i] > 0.0f)
+        printf("%zu ", i);
+    }
+    printf("\n");
   }
-  printf("\n");
+  last_sum_active_sm = sum_active_sm;
   // add done
   if ((tot_cycle + cycle) % stat_sample_freq == 0) {
     if (dvfs_enabled) {
