@@ -61,7 +61,7 @@ void mcpat_cycle(const gpgpu_sim_config &config,
   // add by lyhong
   std::vector<float> active_sm_norm(lyhong_active_sm.size(), 0.0f);
   float sum_active_sm = 0.0f;
-  float last_sum_active_sm = 0.0f;
+  static float last_sum_active_sm = 0.0f;
   for (size_t i = 0; i < lyhong_active_sm.size(); ++i) {
     active_sm_norm[i] = lyhong_active_sm[i] / static_cast<float>(stat_sample_freq);
     sum_active_sm += active_sm_norm[i];
