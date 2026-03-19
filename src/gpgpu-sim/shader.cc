@@ -4541,9 +4541,15 @@ unsigned simt_core_cluster::get_n_active_sms() const {
   return n;
 }
 
+// add by lyhong
+unsigned gpgpu_shader_cta_issue_mode = 1; // 0 means issue cta to all cores, 1 means issue cta to even cores only
 unsigned simt_core_cluster::issue_block2core() {
   const unsigned max_pending_ctas = 4;
   for (unsigned core = 0; core < m_config->n_simt_cores_per_cluster; core++) {
+    unsigned sid = m_core[core]->get_sid();
+    if (gpgpu_shader_cta_issue_mode == 1) {
+      if ((sid % 2) != 0) continue;
+    }
     if (m_core[core]->pending_ctas.size() < max_pending_ctas) {
       kernel_info_t *kernel;
       // Jin: fetch kernel according to concurrent kernel setting
@@ -4577,7 +4583,10 @@ unsigned simt_core_cluster::issue_block2core() {
   for (unsigned i = 0; i < m_config->n_simt_cores_per_cluster; i++) {
     unsigned core =
         (i + m_cta_issue_next_core + 1) % m_config->n_simt_cores_per_cluster;
-
+    unsigned sid = m_core[core]->get_sid();
+    if (gpgpu_shader_cta_issue_mode == 1) {
+      if ((sid % 2) != 0) continue;
+    }
     if (m_core[core]->pending_ctas.size() > 0) {
       kernel_info_t *pending_cta = m_core[core]->pending_ctas.front();
       if (m_core[core]->can_issue_1block(*pending_cta)) {
@@ -4592,6 +4601,7 @@ unsigned simt_core_cluster::issue_block2core() {
 
   return num_blocks_issued;
 }
+// add done by lyhong
 
 void simt_core_cluster::cache_flush() {
   for (unsigned i = 0; i < m_config->n_simt_cores_per_cluster; i++)
