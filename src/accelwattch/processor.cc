@@ -478,7 +478,57 @@ Processor::Processor(ParseXML *XML_interface)
   //  globalClock.l_ip.with_clock_grid=false;//global clock does not drive local
   //  final nodes globalClock.optimize_wire();
 }
+static void copy_core_runtime_stats(ParseXML *XML, int src, int dst) {
+  // 只拷贝“运行时统计量”，不要动结构配置
+  XML->sys.core[dst].gpgpu_clock_gated_lanes = XML->sys.core[src].gpgpu_clock_gated_lanes;
+  XML->sys.core[dst].total_cycles            = XML->sys.core[src].total_cycles;
+  XML->sys.core[dst].busy_cycles             = XML->sys.core[src].busy_cycles;
 
+  XML->sys.core[dst].total_instructions      = XML->sys.core[src].total_instructions;
+  XML->sys.core[dst].int_instructions        = XML->sys.core[src].int_instructions;
+  XML->sys.core[dst].fp_instructions         = XML->sys.core[src].fp_instructions;
+  XML->sys.core[dst].branch_instructions     = XML->sys.core[src].branch_instructions;
+  XML->sys.core[dst].branch_mispredictions   = XML->sys.core[src].branch_mispredictions;
+  XML->sys.core[dst].committed_instructions  = XML->sys.core[src].committed_instructions;
+
+  XML->sys.core[dst].load_instructions       = XML->sys.core[src].load_instructions;
+  XML->sys.core[dst].store_instructions      = XML->sys.core[src].store_instructions;
+
+  XML->sys.core[dst].int_regfile_reads       = XML->sys.core[src].int_regfile_reads;
+  XML->sys.core[dst].float_regfile_reads     = XML->sys.core[src].float_regfile_reads;
+  XML->sys.core[dst].int_regfile_writes      = XML->sys.core[src].int_regfile_writes;
+  XML->sys.core[dst].float_regfile_writes    = XML->sys.core[src].float_regfile_writes;
+  XML->sys.core[dst].non_rf_operands         = XML->sys.core[src].non_rf_operands;
+
+  XML->sys.core[dst].ialu_accesses           = XML->sys.core[src].ialu_accesses;
+  XML->sys.core[dst].fpu_accesses            = XML->sys.core[src].fpu_accesses;
+  XML->sys.core[dst].mul_accesses            = XML->sys.core[src].mul_accesses;
+  XML->sys.core[dst].cdb_alu_accesses        = XML->sys.core[src].cdb_alu_accesses;
+  XML->sys.core[dst].cdb_mul_accesses        = XML->sys.core[src].cdb_mul_accesses;
+  XML->sys.core[dst].cdb_fpu_accesses        = XML->sys.core[src].cdb_fpu_accesses;
+
+  // icache runtime counters
+  XML->sys.core[dst].icache.read_accesses    = XML->sys.core[src].icache.read_accesses;
+  XML->sys.core[dst].icache.read_misses      = XML->sys.core[src].icache.read_misses;
+  XML->sys.core[dst].icache.conflicts        = XML->sys.core[src].icache.conflicts;
+
+  // dcache / ccache / tcache runtime counters
+  XML->sys.core[dst].dcache.read_accesses    = XML->sys.core[src].dcache.read_accesses;
+  XML->sys.core[dst].dcache.write_accesses   = XML->sys.core[src].dcache.write_accesses;
+  XML->sys.core[dst].dcache.read_misses      = XML->sys.core[src].dcache.read_misses;
+  XML->sys.core[dst].dcache.write_misses     = XML->sys.core[src].dcache.write_misses;
+  XML->sys.core[dst].dcache.conflicts        = XML->sys.core[src].dcache.conflicts;
+
+  XML->sys.core[dst].ccache.read_accesses    = XML->sys.core[src].ccache.read_accesses;
+  XML->sys.core[dst].ccache.write_accesses   = XML->sys.core[src].ccache.write_accesses;
+  XML->sys.core[dst].ccache.read_misses      = XML->sys.core[src].ccache.read_misses;
+  XML->sys.core[dst].ccache.write_misses     = XML->sys.core[src].ccache.write_misses;
+  XML->sys.core[dst].ccache.conflicts        = XML->sys.core[src].ccache.conflicts;
+
+  XML->sys.core[dst].tcache.read_accesses    = XML->sys.core[src].tcache.read_accesses;
+  XML->sys.core[dst].tcache.read_misses      = XML->sys.core[src].tcache.read_misses;
+  XML->sys.core[dst].tcache.conflicts        = XML->sys.core[src].tcache.conflicts;
+}
 void Processor::compute() {
   int i;
   double pppm_t[4] = {1, 1, 1, 1};
@@ -488,7 +538,9 @@ void Processor::compute() {
   // core.power.reset();
 
   core.rt_power.reset();
+  system_core backup_core0 = XML->sys.core[0];
   for (i = 0; i < numCore; i++) {
+    copy_core_runtime_stats(XML, i, 0);
     cores[i]->executionTime =
         XML->sys.total_cycles / (XML->sys.core[0].clock_rate * 1e6);
     cores[i]->rt_power.reset();
@@ -504,6 +556,7 @@ void Processor::compute() {
       core.rt_power = core.rt_power + cores[i]->rt_power * pppm_t;
       rt_power = rt_power + cores[i]->rt_power * pppm_t;
     }
+    XML->sys.core[0] = backup_core0;
   }
 
   if (!XML->sys.Private_L2) {
